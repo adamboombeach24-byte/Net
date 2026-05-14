@@ -1,0 +1,2185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0f0f0f">
+<title>Net Worth</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js" crossorigin="anonymous"></script>
+<script>
+// Fallback CDN if primary fails
+window.addEventListener('error', function(e) {
+  if (e.target && e.target.src && e.target.src.includes('Chart')) {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
+    document.head.appendChild(s);
+  }
+}, true);
+</script>
+<link rel="manifest" href="data:application/manifest+json,{%22name%22:%22Net%20Worth%22,%22short_name%22:%22Worth%22,%22display%22:%22standalone%22,%22background_color%22:%22%230f0f0f%22,%22theme_color%22:%22%230f0f0f%22,%22start_url%22:%22.%22,%22icons%22:[{%22src%22:%22data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%230f0f0f'/%3E%3Ctext x='96' y='130' font-size='110' text-anchor='middle' fill='white'%3E₿%3C/text%3E%3C/svg%3E%22,%22sizes%22:%22192x192%22,%22type%22:%22image/svg+xml%22}]}">
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --bg2: #1a1a1a;
+    --bg3: #242424;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #f0f0f0;
+    --text2: #888;
+    --text3: #555;
+    --accent: #6e8efb;
+    --accent-text: #ffffff;
+    --green: #30d158;
+    --red: #ff453a;
+    --blue: #0a84ff;
+    --orange: #ff9f0a;
+    --purple: #bf5af2;
+    --teal: #5ac8fa;
+    --radius: 14px;
+    --radius-sm: 9px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  body.light {
+    --bg: #f2f2f7;
+    --bg2: #ffffff;
+    --bg3: #e8e8ed;
+    --border: rgba(0,0,0,0.08);
+    --border2: rgba(0,0,0,0.14);
+    --text: #1c1c1e;
+    --text2: #6c6c70;
+    --text3: #aeaeb2;
+    --accent: #007aff;
+    --accent-text: #ffffff;
+    --green: #34c759;
+    --red: #ff3b30;
+    --orange: #ff9500;
+    --purple: #af52de;
+    --teal: #32ade6;
+  }
+
+  /* theme toggle */
+  .theme-toggle {
+    position: fixed; top: 16px; right: 16px; z-index: 200;
+    background: var(--bg2); border: 0.5px solid var(--border2);
+    border-radius: 999px; padding: 6px 10px; font-size: 18px;
+    cursor: pointer; line-height: 1;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: -apple-system, 'Helvetica Neue', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  /* ── Layout ── */
+  #app { padding-bottom: calc(64px + var(--safe-bottom)); }
+  .screen { display: none; padding: 0 16px 16px; }
+  .screen.active { display: block; }
+
+  /* ── Nav bar ── */
+  nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: rgba(15,15,15,0.92);
+    backdrop-filter: blur(20px);
+    border-top: 0.5px solid var(--border);
+    display: flex;
+    padding-bottom: var(--safe-bottom);
+    z-index: 100;
+  }
+  .nav-btn {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    gap: 3px; padding: 10px 0 8px; border: none; background: transparent;
+    color: var(--text3); font-size: 10px; font-family: inherit; cursor: pointer;
+    transition: color .2s;
+  }
+  .nav-btn .nav-icon { font-size: 22px; line-height: 1; }
+  .nav-btn.active { color: var(--tab-color, var(--accent)); }
+
+  /* ── Header ── */
+  .page-header {
+    padding: 56px 0 16px;
+    position: sticky; top: 0; z-index: 50;
+    background: linear-gradient(var(--bg) 80%, transparent);
+  }
+  .page-title { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+  .page-sub { font-size: 13px; color: var(--text2); margin-top: 2px; }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--bg2); border-radius: var(--radius);
+    border: 0.5px solid var(--border); margin-bottom: 12px;
+  }
+  .card-inner { padding: 16px; }
+  .card-title {
+    font-size: 12px; font-weight: 600; color: var(--text2);
+    text-transform: uppercase; letter-spacing: .06em;
+    margin-bottom: 12px; display: flex; align-items: center; gap: 7px;
+  }
+
+  /* ── Hero metric ── */
+  .hero {
+    background: var(--bg2); border-radius: var(--radius);
+    border: 0.5px solid var(--border); padding: 20px 16px;
+    margin-bottom: 12px;
+  }
+  .hero-label { font-size: 12px; color: var(--text2); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+  .hero-value { font-size: 42px; font-weight: 700; letter-spacing: -1.5px; color: var(--text); }
+  .hero-change { font-size: 13px; margin-top: 4px; color: var(--text2); }
+
+  /* ── Source grid ── */
+  .source-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .source-card {
+    background: var(--bg2); border-radius: var(--radius);
+    border: 0.5px solid var(--border); padding: 14px;
+  }
+  .source-label { font-size: 11px; color: var(--text2); margin-bottom: 6px; display: flex; align-items: center; gap: 5px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+  .source-value { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; }
+  .source-sub { font-size: 11px; color: var(--text2); margin-top: 3px; }
+
+  /* ── Status rows ── */
+  .status-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 11px 0; border-bottom: 0.5px solid var(--border); font-size: 14px;
+  }
+  .status-row:last-child { border-bottom: none; }
+  .status-label { color: var(--text2); }
+  .status-val { font-weight: 500; }
+
+  /* ── Chip grid ── */
+  .chip-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+  .chip { background: var(--bg3); border-radius: var(--radius-sm); padding: 10px 11px; }
+  .chip-sym { font-size: 11px; color: var(--text2); text-transform: uppercase; font-weight: 600; margin-bottom: 3px; }
+  .chip-val { font-size: 14px; font-weight: 600; }
+  .chip-sub { font-size: 11px; margin-top: 2px; }
+
+  /* ── Section divider ── */
+  .section-divider { border: none; border-top: 0.5px solid var(--border); margin: 4px 0; }
+
+  /* ── Source section ── */
+  .source-section { padding: 16px; }
+  .source-section + .source-section { border-top: 0.5px solid var(--border); }
+  .source-head { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text2); margin-bottom: 12px; display: flex; align-items: center; gap: 7px; }
+
+  /* ── Refresh bar ── */
+  .refresh-bar {
+    display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+    background: var(--bg2); border-radius: var(--radius); border: 0.5px solid var(--border);
+    margin-bottom: 12px; font-size: 12px; color: var(--text2);
+  }
+  .progress { flex: 1; height: 2px; background: var(--bg3); border-radius: 1px; overflow: hidden; }
+  .progress-inner { height: 100%; background: var(--text2); border-radius: 1px; transition: width 1s linear; }
+
+  /* ── Settings float button ── */
+  .settings-btn {
+    position: fixed; top: 12px; right: 16px; z-index: 200;
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--bg2); border: 0.5px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; cursor: pointer; color: var(--text2);
+    transition: color .2s;
+  }
+  .settings-btn.active-settings { color: var(--accent); border-color: var(--accent); }
+
+  /* ── Settings ── */
+  .setting-section { margin-bottom: 20px; }
+  .setting-label { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; padding: 0 4px; }
+  .setting-card { background: var(--bg2); border-radius: var(--radius); border: 0.5px solid var(--border); overflow: hidden; }
+  .setting-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; border-bottom: 0.5px solid var(--border); min-height: 52px;
+  }
+  .setting-row:last-child { border-bottom: none; }
+  .setting-row-label { font-size: 15px; color: var(--text); }
+  .setting-row-sub { font-size: 12px; color: var(--text2); margin-top: 1px; }
+
+  /* ── Form inputs ── */
+  input[type="text"], input[type="number"], input[type="password"], input[type="date"], select {
+    background: var(--bg3); border: 0.5px solid var(--border2);
+    border-radius: var(--radius-sm); color: var(--text);
+    font-size: 15px; font-family: inherit;
+    padding: 11px 13px; width: 100%;
+    -webkit-appearance: none; appearance: none;
+  }
+  input:focus, select:focus { outline: none; border-color: var(--accent); }
+  input::placeholder { color: var(--text3); }
+  select option { background: var(--bg2); }
+
+  /* ── Buttons ── */
+  .btn {
+    background: var(--bg3); border: 0.5px solid var(--border2);
+    border-radius: var(--radius-sm); color: var(--text);
+    font-size: 15px; font-family: inherit; padding: 13px 18px;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 7px;
+    transition: opacity .15s; -webkit-appearance: none;
+  }
+  .btn:active { opacity: .7; }
+  .btn-accent { background: var(--accent); border-color: transparent; color: var(--accent-text); font-weight: 600; }
+  .btn-full { width: 100%; justify-content: center; }
+  .btn-sm { font-size: 13px; padding: 8px 13px; }
+  .btn-danger { background: rgba(255,69,58,.15); border-color: rgba(255,69,58,.3); color: var(--red); }
+
+  /* ── Tags / badges ── */
+  .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 999px; }
+  .badge-ok { background: rgba(48,209,88,.15); color: var(--green); }
+  .badge-err { background: rgba(255,69,58,.15); color: var(--red); }
+  .badge-idle { background: var(--bg3); color: var(--text2); }
+
+  /* ── Dot indicators ── */
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+  .dt { background: var(--teal); }
+  .dc { background: var(--orange); }
+  .dm { background: var(--purple); }
+  .dr { background: var(--green); }
+  .dca { background: var(--text2); }
+
+  /* ── Row items (coin/stock/cash entries) ── */
+  .row-item { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .row-item input { flex: 1; }
+  .row-item .amt { max-width: 100px; }
+
+  /* ── Topup log ── */
+  .topup-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 0; border-bottom: 0.5px solid var(--border); font-size: 14px;
+  }
+  .topup-row:last-child { border-bottom: none; }
+
+  /* ── Info box ── */
+  .info-box {
+    background: rgba(10,132,255,.12); border: 0.5px solid rgba(10,132,255,.3);
+    border-radius: var(--radius-sm); padding: 10px 13px;
+    font-size: 13px; color: var(--teal); margin-bottom: 14px; line-height: 1.5;
+  }
+
+  /* ── Error box ── */
+  .err-box {
+    background: rgba(255,69,58,.1); border: 0.5px solid rgba(255,69,58,.3);
+    border-radius: var(--radius-sm); padding: 9px 13px;
+    font-size: 12px; color: var(--red); margin-top: 8px; line-height: 1.5;
+  }
+
+  /* ── Utility ── */
+  .positive { color: var(--green); }
+  .negative { color: var(--red); }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .gap-top { margin-top: 10px; }
+  .mt { margin-top: 14px; }
+  .muted { color: var(--text2); font-size: 12px; margin-top: 4px; line-height: 1.5; }
+  .empty { text-align: center; padding: 20px; color: var(--text3); font-size: 14px; }
+
+  /* ── History ── */
+  .hist-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 13px 0; border-bottom: 0.5px solid var(--border); gap: 10px;
+  }
+  .hist-row:last-child { border-bottom: none; }
+  .hist-date { font-size: 13px; color: var(--text2); min-width: 80px; }
+  .hist-total { font-size: 16px; font-weight: 600; }
+  .hist-diff { font-size: 12px; margin-top: 2px; }
+  .chart-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+  .chart-scroll::-webkit-scrollbar { display: none; }
+  .range-pills { display: flex; gap: 6px; margin-bottom: 14px; }
+  .pill { padding: 5px 13px; border-radius: 999px; font-size: 12px; font-weight: 600; border: 0.5px solid var(--border2); background: transparent; color: var(--text2); cursor: pointer; font-family: inherit; }
+  .pill.active { background: var(--accent); border-color: transparent; color: var(--accent-text); }
+  .stat-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .stat-box { flex: 1; background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 12px; }
+  .stat-label { font-size: 11px; color: var(--text2); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+  .stat-val { font-size: 16px; font-weight: 600; }
+
+  /* ── Milestone toast ── */
+  #milestone-toast {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-120px);
+    background: var(--accent); color: var(--accent-text); border-radius: 999px;
+    padding: 10px 20px; font-size: 14px; font-weight: 700;
+    z-index: 999; transition: transform .4s cubic-bezier(.34,1.56,.64,1);
+    white-space: nowrap; box-shadow: 0 4px 24px rgba(0,0,0,.4);
+  }
+  #milestone-toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ── Goal bar ── */
+  .goal-bar-wrap { background: var(--bg3); border-radius: 999px; height: 6px; margin: 8px 0 4px; overflow: hidden; }
+  .goal-bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #30d158, #e8ff5a); transition: width .6s ease; }
+
+  /* ── Donut chart ── */
+  .donut-wrap { display: flex; align-items: center; gap: 16px; }
+  .donut-legend { flex: 1; display: flex; flex-direction: column; gap: 7px; }
+  .legend-row { display: flex; align-items: center; justify-content: space-between; font-size: 13px; gap: 8px; }
+  .legend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .legend-label { flex: 1; color: var(--text2); }
+  .legend-val { font-weight: 600; }
+  .legend-pct { font-size: 11px; color: var(--text2); min-width: 36px; text-align: right; }
+
+  /* ── Streak ── */
+  .streak-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(255,159,10,.12); border: 0.5px solid rgba(255,159,10,.3);
+    border-radius: 999px; padding: 3px 10px; font-size: 12px; font-weight: 600;
+    color: var(--orange); margin-top: 6px;
+  }
+</style>
+</head>
+<body>
+<!-- Milestone toast -->
+<div id="milestone-toast">🎉</div>
+<!-- Settings button -->
+<button class="settings-btn" id="settings-btn" onclick="toggleSettings()" aria-label="Settings">⚙</button>
+
+<div id="app">
+
+  <!-- ── DASHBOARD ── -->
+  <div class="screen active" id="screen-dash">
+    <div class="refresh-bar" style="margin-top:16px;padding-right:48px">
+      <span id="last-refresh" style="white-space:nowrap;flex-shrink:0">Loading…</span>
+      <div class="progress"><div class="progress-inner" id="prog" style="width:100%"></div></div>
+      <button class="btn btn-sm" onclick="refresh()" aria-label="Refresh now">↺</button>
+    </div>
+
+    <div class="hero">
+      <div class="hero-label">Total</div>
+      <div class="hero-value" id="d-total">—</div>
+      <div style="display:flex;align-items:center;margin-top:6px;gap:0">
+        <div class="hero-change" id="d-change-1h" style="padding-right:10px"></div>
+        <div id="div-1h" style="width:0.5px;height:12px;background:var(--border2);display:none"></div>
+        <div class="hero-change" id="d-change" style="padding:0 10px"></div>
+        <div id="div-24h" style="width:0.5px;height:12px;background:var(--border2);display:none"></div>
+        <div class="hero-change" id="d-change-week" style="padding-left:10px;color:var(--text2)"></div>
+      </div>
+      <div id="streak-badge-wrap"></div>
+      <!-- Goal bar -->
+      <div id="goal-section" style="display:none;margin-top:10px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:2px">
+          <span id="goal-label">Goal</span><span id="goal-pct-label"></span>
+        </div>
+        <div class="goal-bar-wrap"><div class="goal-bar-fill" id="goal-bar" style="width:0%"></div></div>
+        <div style="font-size:11px;color:var(--text2);margin-top:3px" id="goal-eta"></div>
+      </div>
+    </div>
+
+    <!-- Allocation donut -->
+    <div class="card" style="padding:16px;margin-bottom:10px">
+      <div class="card-title">Allocation</div>
+      <div class="donut-wrap">
+        <canvas id="donut-chart" width="110" height="110" style="flex-shrink:0"></canvas>
+        <div class="donut-legend" id="donut-legend"></div>
+      </div>
+    </div>
+
+    <div class="source-grid">
+      <div class="source-card">
+        <div class="source-label"><span class="dot dt"></span>Trading 212</div>
+        <div class="source-value" id="d-t212">—</div>
+        <div class="source-sub" id="d-t212-sub"></div>
+      </div>
+      <div class="source-card">
+        <div class="source-label"><span class="dot dc"></span>Crypto</div>
+        <div class="source-value" id="d-crypto">—</div>
+        <div class="source-sub" id="d-crypto-sub"></div>
+      </div>
+      <div class="source-card">
+        <div class="source-label"><span class="dot dm"></span>Stocks</div>
+        <div class="source-value" id="d-stocks">—</div>
+        <div class="source-sub" id="d-stocks-sub"></div>
+      </div>
+      <div class="source-card">
+        <div class="source-label"><span class="dot dr"></span>Revolut</div>
+        <div class="source-value" id="d-savings">—</div>
+        <div class="source-sub" id="d-savings-sub"></div>
+      </div>
+      <div class="source-card" style="grid-column:span 2">
+        <div class="source-label"><span class="dot dca"></span>Cash</div>
+        <div class="source-value" id="d-cash">—</div>
+        <div class="source-sub" id="d-cash-sub"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="source-section">
+        <div class="source-head"><span class="dot dt"></span>Trading 212 <span id="t212-badge" style="margin-left:4px"></span></div>
+        <div class="status-row"><span class="status-label">Portfolio</span><span class="status-val" id="t212-pval">—</span></div>
+        <div class="status-row"><span class="status-label">Cash</span><span class="status-val" id="t212-cash">—</span></div>
+        <div id="t212-err"></div>
+      </div>
+      <div class="source-section">
+        <div class="source-head"><span class="dot dc"></span>Crypto <span id="cg-badge" style="margin-left:4px"></span></div>
+        <div class="chip-grid" id="coin-chips"><div class="empty">No holdings configured</div></div>
+      </div>
+      <div class="source-section">
+        <div class="source-head"><span class="dot dm"></span>Stocks <span id="stock-badge" style="margin-left:4px"></span></div>
+        <div class="chip-grid" id="stock-chips"><div class="empty">No holdings configured</div></div>
+      </div>
+      <div class="source-section">
+        <div class="source-head"><span class="dot dr"></span>Revolut savings</div>
+        <div class="status-row"><span class="status-label">Balance</span><span class="status-val" id="rev-bal-d">—</span></div>
+      </div>
+      <div class="source-section">
+        <div class="source-head"><span class="dot dca"></span>Cash accounts</div>
+        <div class="chip-grid" id="cash-chips"><div class="empty">No accounts added</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── BALANCES ── -->
+  <div class="screen" id="screen-balances">
+    <div class="page-header">
+      <div class="page-title">Balances</div>
+    </div>
+
+    <!-- Revolut -->
+    <div class="setting-section">
+      <div class="setting-label"><span class="dot dr" style="margin-right:5px"></span>Revolut savings</div>
+      <div class="setting-card card-inner">
+        <div class="info-box">Update whenever your balance changes — deposits, withdrawals, or when you check the app.</div>
+        <div><label class="muted" style="display:block;margin-bottom:5px">Current balance</label><input type="number" id="rev-balance" placeholder="e.g. 8500" min="0" step="0.01"></div>
+      </div>
+    </div>
+
+    <!-- Cash -->
+    <div class="setting-section">
+      <div class="setting-label"><span class="dot dca" style="margin-right:5px"></span>Cash accounts</div>
+      <div class="setting-card card-inner">
+        <div id="cash-list"></div>
+        <button class="btn btn-sm gap-top" onclick="addRow('cash-list','cash')">+ Add account</button>
+      </div>
+    </div>
+
+    <!-- Crypto -->
+    <div class="setting-section">
+      <div class="setting-label"><span class="dot dc" style="margin-right:5px"></span>Crypto</div>
+      <div class="setting-card card-inner">
+        <div class="info-box">CoinGecko IDs: bitcoin, ethereum, solana, cardano… Update amounts when you buy or sell.</div>
+        <div id="coin-list"></div>
+        <button class="btn btn-sm gap-top" onclick="addRow('coin-list','coin')">+ Add coin</button>
+      </div>
+    </div>
+
+    <!-- Stocks -->
+    <div class="setting-section">
+      <div class="setting-label"><span class="dot dm" style="margin-right:5px"></span>Company stocks</div>
+      <div class="setting-card card-inner">
+        <div class="info-box">Update share count and total invested when you buy or sell. Ticker as on Yahoo Finance (e.g. AZN.L, MSFT).</div>
+        <div id="stock-list"></div>
+        <button class="btn btn-sm gap-top" onclick="addRow('stock-list','stock')">+ Add stock</button>
+      </div>
+    </div>
+
+    <button class="btn btn-accent btn-full" style="font-size:17px;padding:16px" onclick="saveAndRefresh()">Save &amp; refresh</button>
+    <div style="height:12px"></div>
+  </div>
+
+  <!-- ── SETTINGS ── -->
+  <div class="screen" id="screen-settings">
+    <div class="page-header">
+      <div class="page-title">Settings</div>
+    </div>
+
+    <!-- Trading 212 -->
+    <div class="setting-section">
+      <div class="setting-label"><span class="dot dt" style="margin-right:5px"></span>Trading 212</div>
+      <div class="setting-card card-inner">
+        <div class="info-box">Settings → API (Beta) → generate a key with <strong>account data, portfolio, and history</strong> permissions. Leave orders unchecked. Copy both credentials — the secret is only shown once.</div>
+        <div style="margin-bottom:10px"><label class="muted" style="display:block;margin-bottom:5px">API key</label><input type="password" id="t212-key" placeholder="Paste API key"></div>
+        <div style="margin-bottom:10px"><label class="muted" style="display:block;margin-bottom:5px">API secret</label><input type="password" id="t212-secret" placeholder="Paste API secret"><small>Stored locally on your device only.</small></div>
+        <div style="margin-bottom:10px"><label class="muted" style="display:block;margin-bottom:5px">Cloudflare proxy URL <span style="color:var(--text3);font-weight:400">(needed to bypass CORS)</span></label><input type="text" id="t212-proxy" placeholder="https://t212-proxy.yourname.workers.dev"><small>Your Worker URL from Cloudflare. Leave blank to try direct (usually blocked).</small></div>
+        <div><label class="muted" style="display:block;margin-bottom:5px">Account type</label>
+          <select id="t212-env"><option value="live">Live account</option><option value="demo">Demo account</option></select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Goal -->
+    <div class="setting-section">
+      <div class="setting-label">Net worth goal</div>
+      <div class="setting-card card-inner">
+        <div class="info-box">Set a target and the app will show a progress bar and projected date on the dashboard.</div>
+        <div class="two-col">
+          <div><label class="muted" style="display:block;margin-bottom:5px">Target amount (€)</label><input type="number" id="goal-amount" placeholder="e.g. 100000" min="0" step="100"></div>
+          <div><label class="muted" style="display:block;margin-bottom:5px">Label (optional)</label><input type="text" id="goal-label-input" placeholder="e.g. House deposit"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Backup & Restore -->
+    <div class="setting-section">
+      <div class="setting-label">Backup &amp; restore</div>
+      <div class="setting-card card-inner">
+        <div class="info-box">Backup saves everything — settings, API keys, history, holdings, goal — to a JSON file on your phone. Keep it in Google Drive or somewhere safe.</div>
+        <button class="btn btn-accent btn-full" style="margin-bottom:10px" onclick="exportBackup()">⬇ Download backup</button>
+        <div><label class="muted" style="display:block;margin-bottom:5px">Restore from backup</label>
+          <input type="file" id="restore-file" accept=".json" style="display:none" onchange="importBackup(this.files[0])">
+          <button class="btn btn-full" onclick="document.getElementById('restore-file').click()">⬆ Choose backup file</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- General -->
+    <div class="setting-section">
+      <div class="setting-label">General</div>
+      <div class="setting-card card-inner">
+        <div style="margin-bottom:12px"><label class="muted" style="display:block;margin-bottom:5px">Display currency</label>
+          <select id="disp-currency"><option value="eur">€ EUR</option><option value="gbp">£ GBP</option><option value="usd">$ USD</option></select>
+        </div>
+        <div style="margin-bottom:12px"><label class="muted" style="display:block;margin-bottom:5px">History chart type</label>
+          <select id="chart-type">
+            <option value="bar">Bar chart</option>
+            <option value="line">Line chart with points</option>
+          </select>
+        </div>
+        <div style="margin-bottom:12px">
+          <label class="muted" style="display:block;margin-bottom:8px">Theme</label>
+          <button class="btn btn-full" id="theme-toggle" onclick="toggleTheme()">🌙 Switch to light mode</button>
+        </div>
+        <div style="margin-bottom:12px">
+          <label class="muted" style="display:block;margin-bottom:8px">Tab icon colours</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div style="display:flex;align-items:center;gap:8px;background:var(--bg3);border-radius:var(--radius-sm);padding:10px">
+              <input type="color" id="color-dash" value="#6e8efb" style="width:32px;height:32px;border:none;background:none;cursor:pointer;padding:0">
+              <span style="font-size:13px;color:var(--text2)">Dashboard</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;background:var(--bg3);border-radius:var(--radius-sm);padding:10px">
+              <input type="color" id="color-balances" value="#5ac8fa" style="width:32px;height:32px;border:none;background:none;cursor:pointer;padding:0">
+              <span style="font-size:13px;color:var(--text2)">Balances</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;background:var(--bg3);border-radius:var(--radius-sm);padding:10px">
+              <input type="color" id="color-history" value="#30d158" style="width:32px;height:32px;border:none;background:none;cursor:pointer;padding:0">
+              <span style="font-size:13px;color:var(--text2)">History</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;background:var(--bg3);border-radius:var(--radius-sm);padding:10px">
+              <input type="color" id="color-settings" value="#bf5af2" style="width:32px;height:32px;border:none;background:none;cursor:pointer;padding:0">
+              <span style="font-size:13px;color:var(--text2)">Settings</span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <label class="muted" style="display:block;margin-bottom:8px">App icon</label>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <div style="text-align:center">
+              <div id="icon-preview" style="width:72px;height:72px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:38px;margin-bottom:6px;border:0.5px solid var(--border2)">₿</div>
+              <div style="font-size:11px;color:var(--text2)">Preview</div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+              <input type="text" id="icon-emoji" placeholder="Emoji or initials (e.g. 💰 or NW)" maxlength="4" style="font-size:20px;text-align:center">
+              <div style="display:flex;gap:8px">
+                <div style="flex:1"><label class="muted" style="display:block;margin-bottom:4px;font-size:11px">Background</label><input type="color" id="icon-bg" value="#0f0f0f" style="width:100%;height:36px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);cursor:pointer;padding:2px"></div>
+                <div style="flex:1"><label class="muted" style="display:block;margin-bottom:4px;font-size:11px">Icon colour</label><input type="color" id="icon-fg" value="#e8ff5a" style="width:100%;height:36px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);cursor:pointer;padding:2px"></div>
+              </div>
+              <button class="btn btn-sm" onclick="previewIcon()">Preview</button>
+            </div>
+          </div>
+          <div class="info-box" style="margin-top:10px;margin-bottom:0">After saving, remove the app from your home screen and re-add it from Chrome to get the new icon.</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-accent btn-full" style="font-size:17px;padding:16px" onclick="saveAndRefresh()">Save &amp; refresh</button>
+    <div style="height:12px"></div>
+  </div>
+
+  <!-- ── HISTORY ── -->
+  <div class="screen" id="screen-history">
+    <div class="page-header">
+      <div class="page-title">History</div>
+    </div>
+
+    <div class="range-pills">
+      <button class="pill active" onclick="setRange('24h', this)">24h</button>
+      <button class="pill" onclick="setRange(30, this)">30d</button>
+      <button class="pill" onclick="setRange(90, this)">90d</button>
+      <button class="pill" onclick="setRange(365, this)">1y</button>
+      <button class="pill" onclick="setRange(0, this)">All</button>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-box"><div class="stat-label">Peak (all-time)</div><div class="stat-val" id="h-peak">—</div><div style="font-size:11px;color:var(--text2);margin-top:2px" id="h-peak-date"></div></div>
+      <div class="stat-box"><div class="stat-label">Change</div><div class="stat-val" id="h-change">—</div></div>
+      <div class="stat-box"><div class="stat-label" id="h-days-label">Days</div><div class="stat-val" id="h-days">—</div></div>
+      <div class="stat-box"><div class="stat-label">Per day</div><div class="stat-val" id="h-perday">—</div><div style="font-size:11px;color:var(--text2);margin-top:2px">this year</div></div>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-box"><div class="stat-label">🏆 Best day</div><div class="stat-val positive" id="h-best">—</div><div style="font-size:11px;color:var(--text2);margin-top:2px" id="h-best-date"></div></div>
+      <div class="stat-box"><div class="stat-label">💀 Worst day</div><div class="stat-val negative" id="h-worst">—</div><div style="font-size:11px;color:var(--text2);margin-top:2px" id="h-worst-date"></div></div>
+    </div>
+
+    <div class="card" style="padding:14px 16px;margin-bottom:12px" id="projection-card">
+      <div class="card-title" style="margin-bottom:6px">📈 Projection</div>
+      <div style="font-size:13px;color:var(--text2)" id="projection-text">Add more history to see a projection.</div>
+    </div>
+
+    <div class="card" style="padding:16px;margin-bottom:12px">
+      <div style="position:relative;display:flex">
+        <!-- Sticky y-axis -->
+        <div style="flex-shrink:0;width:46px;position:relative;z-index:2">
+          <canvas id="yaxis-chart" width="46" height="200" style="display:block"></canvas>
+        </div>
+        <!-- Scrollable chart area -->
+        <div class="chart-scroll" id="chart-scroll-wrap" style="flex:1;overflow-x:auto;-webkit-overflow-scrolling:touch">
+          <div id="chart-wrap" style="height:200px;min-width:100%">
+            <canvas id="hist-chart" role="img" aria-label="Net worth history chart">Net worth history chart</canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="padding:0 16px;margin-bottom:12px;max-height:420px;overflow-y:auto;-webkit-overflow-scrolling:touch">
+      <div id="hist-list"><div class="empty" style="padding:24px">No history yet — data records automatically each day the app is open.</div></div>
+    </div>
+
+    <!-- Add past entry -->
+    <div class="setting-section">
+      <div class="setting-label">Add past entry</div>
+      <div class="setting-card card-inner">
+        <div class="info-box">Manually log what your total was on a specific date. The date must not already exist in history.</div>
+        <div class="two-col" style="margin-bottom:10px">
+          <div><label class="muted" style="display:block;margin-bottom:5px">Date</label><input type="date" id="manual-date"></div>
+          <div><label class="muted" style="display:block;margin-bottom:5px">Total net worth</label><input type="number" id="manual-total" placeholder="e.g. 42000" min="0" step="0.01"></div>
+        </div>
+        <button class="btn btn-accent btn-full" onclick="addManualEntry()">+ Add entry</button>
+      </div>
+    </div>
+
+    <!-- Backfill -->
+    <div class="setting-section">
+      <div class="setting-label">Backfill from past</div>
+      <div class="setting-card card-inner">
+        <div class="info-box">Generate weekly entries between two known totals. Existing entries are kept — only missing dates are filled in. Useful for seeding 6–12 months of history from memory.</div>
+        <div class="two-col" style="margin-bottom:10px">
+          <div><label class="muted" style="display:block;margin-bottom:5px">Start date</label><input type="date" id="bf-start"></div>
+          <div><label class="muted" style="display:block;margin-bottom:5px">Total on start date</label><input type="number" id="bf-start-val" placeholder="e.g. 35000" min="0" step="1"></div>
+        </div>
+        <div class="two-col" style="margin-bottom:12px">
+          <div><label class="muted" style="display:block;margin-bottom:5px">End date</label><input type="date" id="bf-end"></div>
+          <div><label class="muted" style="display:block;margin-bottom:5px">Total on end date</label><input type="number" id="bf-end-val" placeholder="e.g. 41000" min="0" step="1"></div>
+        </div>
+        <div style="margin-bottom:10px"><label class="muted" style="display:block;margin-bottom:5px">Frequency</label>
+          <select id="bf-freq" style="width:100%;border:0.5px solid var(--border2);border-radius:var(--radius-sm);padding:10px;font-size:14px;background:var(--bg3);color:var(--text);font-family:inherit">
+            <option value="7">Weekly</option>
+            <option value="14">Fortnightly</option>
+            <option value="30">Monthly</option>
+          </select>
+        </div>
+        <button class="btn btn-accent btn-full" onclick="runBackfill()">Generate entries</button>
+        <div id="bf-result" style="margin-top:10px;font-size:12px;color:var(--text2)"></div>
+      </div>
+    </div>
+
+    <button class="btn btn-danger btn-full" style="margin-bottom:8px" onclick="clearHistory()">Clear all history</button>
+    <button class="btn btn-full" style="margin-bottom:8px" onclick="exportCSV()">⬇ Export history as CSV</button>
+  </div>
+
+</div><!-- end #app -->
+
+<!-- Bottom nav -->
+<nav>
+  <button class="nav-btn active" id="nav-dash" onclick="showScreen('dash')">
+    <span class="nav-icon">◈</span>
+    <span>Dashboard</span>
+  </button>
+  <button class="nav-btn" id="nav-balances" onclick="showScreen('balances')">
+    <span class="nav-icon">✎</span>
+    <span>Balances</span>
+  </button>
+  <button class="nav-btn" id="nav-history" onclick="showScreen('history')">
+    <span class="nav-icon">↗</span>
+    <span>History</span>
+  </button>
+</nav>
+
+<script>
+/* ── Storage (localStorage wrapper) ── */
+const store = {
+  get(k) { try { const v = localStorage.getItem(k); return v != null ? {value: v} : null; } catch(e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); return true; } catch(e) { return false; } },
+  del(k) { try { localStorage.removeItem(k); return true; } catch(e) { return false; } }
+};
+
+/* ── State ── */
+const REFRESH = 60;        // crypto, stocks, savings, cash — every 60s
+const T212_REFRESH = 300;  // Trading 212 — every 5 minutes
+let t212Timer = null;
+let cfg = { coins: [], stocks: [], cashAccounts: [], savings: { balance: 0 }, currency: 'eur', env: 'live', key: '', secret: '', proxy: '', chartType: 'bar' };
+let timer = null, progTimer = null, progVal = 100, prevTotal = null;
+const syms = { eur: '€', gbp: '£', usd: '$' };
+
+function fmt(n, cur) {
+  if (n == null || isNaN(n)) return '—';
+  return (syms[cur || cfg.currency] || '€') + Number(n).toLocaleString('en-IE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function fmtDate(iso) { return new Date(iso).toLocaleDateString('en-IE', { day: 'numeric', month: 'short' }); }
+function fmtShort(n) {
+  const s = syms[cfg.currency] || '€';
+  const v = Math.abs(n);
+  if (v >= 1e6) return s + (n / 1e6).toFixed(1) + 'M';
+  if (v >= 1000) return s + (n / 1000).toFixed(0) + 'k';
+  return s + n.toFixed(0);
+}
+
+// Returns an interpolated colour based on % change magnitude
+// Gains: 0%→#6fcf7a (soft green) → 2%→#30d158 (green) → 5%+→#00ff88 (bright green)
+// Losses: 0%→#ff9f3a (orange) → 2%→#ff453a (red) → 5%+→#cc0000 (deep red)
+function changeColor(pct) {
+  const abs = Math.abs(pct);
+  const t = Math.min(abs / 5, 1); // 0 at 0%, 1 at 5%+
+  if (pct >= 0) {
+    // soft green → vivid green → bright lime-green
+    const r = Math.round(111 + (0 - 111) * t);
+    const g = Math.round(207 + (255 - 207) * t);
+    const b = Math.round(122 + (136 - 122) * t);
+    return `rgb(${r},${g},${b})`;
+  } else {
+    // orange → red → deep red
+    const r = Math.round(255 + (204 - 255) * t);
+    const g = Math.round(159 + (0 - 159) * t);
+    const b = Math.round(58 + (0 - 58) * t);
+    return `rgb(${r},${g},${b})`;
+  }
+}
+
+/* ── Navigation ── */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const navBtn = document.getElementById('nav-' + id);
+  if (navBtn) navBtn.classList.add('active');
+  // Settings button highlight
+  const sb = document.getElementById('settings-btn');
+  if (id === 'settings') sb.classList.add('active-settings');
+  else sb.classList.remove('active-settings');
+  if (id === 'history') renderHistory();
+}
+
+let prevScreen = 'dash';
+function toggleSettings() {
+  const settings = document.getElementById('screen-settings');
+  if (settings.classList.contains('active')) {
+    showScreen(prevScreen);
+  } else {
+    prevScreen = document.querySelector('.screen.active')?.id.replace('screen-', '') || 'dash';
+    showScreen('settings');
+  }
+}
+
+/* ── Row builders ── */
+function makeRow(type, data = {}) {
+  const d = document.createElement('div');
+  d.className = 'row-item';
+  if (type === 'coin') {
+    d.style.cssText = 'flex-direction:column;align-items:stretch;gap:6px;padding:12px;background:var(--bg3);border-radius:var(--radius-sm);margin-bottom:10px';
+    d.innerHTML = `
+      <div style="display:flex;gap:8px;align-items:center">
+        <input placeholder="CoinGecko ID (e.g. bitcoin)" class="ci" value="${data.id || ''}" style="flex:1;text-transform:lowercase">
+        <button class="btn btn-sm btn-danger" style="flex-shrink:0" onclick="this.closest('.row-item').remove()">✕</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div><label class="muted" style="display:block;margin-bottom:4px">Amount held</label><input placeholder="e.g. 0.5" class="ca" type="number" min="0" step="any" value="${data.amt || ''}"></div>
+        <div><label class="muted" style="display:block;margin-bottom:4px">Avg cost per unit (${cfg.currency?.toUpperCase() || 'EUR'})</label><input placeholder="e.g. 28000" class="cc" type="number" min="0" step="any" value="${data.cost || ''}"></div>
+      </div>`;
+  } else if (type === 'stock') {
+    d.style.cssText = 'flex-direction:column;align-items:stretch;gap:6px;padding:12px;background:var(--bg3);border-radius:var(--radius-sm);margin-bottom:10px';
+    d.innerHTML = `
+      <div style="display:flex;gap:8px;align-items:center">
+        <input placeholder="Ticker (e.g. AZN, MSFT)" class="st" style="flex:1;text-transform:uppercase;font-weight:600" value="${data.ticker || ''}">
+        <button class="btn btn-sm btn-danger" style="flex-shrink:0" onclick="this.closest('.row-item').remove()">✕</button>
+      </div>
+      <div><label class="muted" style="display:block;margin-bottom:4px">Label (optional)</label><input placeholder="e.g. Mercer RSU, Company shares" class="sl" value="${data.label || ''}"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div><label class="muted" style="display:block;margin-bottom:4px">Number of shares</label><input placeholder="e.g. 25" class="sq" type="number" min="0" step="any" value="${data.qty || ''}"></div>
+        <div><label class="muted" style="display:block;margin-bottom:4px">Total invested (€)</label><input placeholder="e.g. 5200" class="sc" type="number" min="0" step="any" value="${data.cost || ''}"></div>
+      </div>`;
+  } else if (type === 'cash') {
+    d.style.cssText = 'display:flex;gap:8px;align-items:center;margin-bottom:8px';
+    d.innerHTML = `<input placeholder="Account name" class="cname" value="${data.name || ''}"><input placeholder="Balance" class="cbal amt" type="number" min="0" step="0.01" value="${data.balance || ''}"><button class="btn btn-sm btn-danger" style="flex-shrink:0" onclick="this.closest('.row-item').remove()">✕</button>`;
+  }
+  return d;
+}
+function addRow(listId, type) { document.getElementById(listId).appendChild(makeRow(type)); }
+
+/* ── Collect ── */
+function collectCoins() { return Array.from(document.querySelectorAll('#coin-list .row-item')).map(r => ({ id: r.querySelector('.ci').value.trim().toLowerCase(), amt: parseFloat(r.querySelector('.ca').value) || 0, cost: parseFloat(r.querySelector('.cc').value) || 0 })).filter(c => c.id && c.amt > 0); }
+function collectStocks() { return Array.from(document.querySelectorAll('#stock-list .row-item')).map(r => ({ ticker: r.querySelector('.st').value.trim().toUpperCase(), qty: parseFloat(r.querySelector('.sq').value) || 0, label: r.querySelector('.sl').value.trim(), cost: parseFloat(r.querySelector('.sc').value) || 0 })).filter(s => s.ticker && s.qty > 0); }
+function collectCash() { return Array.from(document.querySelectorAll('#cash-list .row-item')).map(r => ({ name: r.querySelector('.cname').value.trim(), balance: parseFloat(r.querySelector('.cbal').value) || 0 })).filter(c => c.name); }
+
+/* ── Save / load ── */
+function saveCfg() {
+  const toSave = { ...cfg, key: undefined, secret: undefined };
+  store.set('nw-cfg', JSON.stringify(toSave));
+  if (cfg.key) store.set('nw-key', cfg.key);
+  if (cfg.secret) store.set('nw-secret', cfg.secret);
+}
+function loadCfg() {
+  const cr = store.get('nw-cfg');
+  const kr = store.get('nw-key');
+  const sr = store.get('nw-secret');
+  if (cr) cfg = { ...cfg, ...JSON.parse(cr.value) };
+  if (kr) cfg.key = kr.value;
+  if (sr) cfg.secret = sr.value;
+}
+
+/* ── Populate settings from cfg ── */
+function populateSettings() {
+  if (cfg.key) document.getElementById('t212-key').value = cfg.key;
+  if (cfg.secret) document.getElementById('t212-secret').value = cfg.secret;
+  if (cfg.proxy) document.getElementById('t212-proxy').value = cfg.proxy;
+  document.getElementById('t212-env').value = cfg.env || 'live';
+  document.getElementById('disp-currency').value = cfg.currency || 'eur';
+  document.getElementById('chart-type').value = cfg.chartType || 'bar';
+  ['coin-list', 'stock-list', 'cash-list'].forEach(id => document.getElementById(id).innerHTML = '');
+  (cfg.coins || []).forEach(c => document.getElementById('coin-list').appendChild(makeRow('coin', c)));
+  (cfg.stocks || []).forEach(s => document.getElementById('stock-list').appendChild(makeRow('stock', s)));
+  (cfg.cashAccounts || []).forEach(c => document.getElementById('cash-list').appendChild(makeRow('cash', c)));
+  if (cfg.savings?.balance) document.getElementById('rev-balance').value = cfg.savings.balance;
+  const savedGoal = store.get('nw-goal-amount');
+  const savedGoalLbl = store.get('nw-goal-label');
+  if (savedGoal) document.getElementById('goal-amount').value = savedGoal.value;
+  if (savedGoalLbl) document.getElementById('goal-label-input').value = savedGoalLbl.value;
+  loadTabColorInputs();
+}
+
+function saveAndRefresh() {
+  cfg.key = document.getElementById('t212-key').value.trim();
+  cfg.secret = document.getElementById('t212-secret').value.trim();
+  cfg.proxy = document.getElementById('t212-proxy').value.trim().replace(/\/$/, '');
+  cfg.env = document.getElementById('t212-env').value;
+  cfg.currency = document.getElementById('disp-currency').value;
+  cfg.chartType = document.getElementById('chart-type').value;
+  cfg.coins = collectCoins();
+  cfg.stocks = collectStocks();
+  cfg.cashAccounts = collectCash();
+  cfg.savings = { balance: parseFloat(document.getElementById('rev-balance').value) || 0 };
+  // Save goal separately
+  const goalAmt = document.getElementById('goal-amount').value.trim();
+  const goalLbl = document.getElementById('goal-label-input').value.trim();
+  if (goalAmt) store.set('nw-goal-amount', goalAmt);
+  else store.del('nw-goal-amount');
+  if (goalLbl) store.set('nw-goal-label', goalLbl);
+  else store.del('nw-goal-label');
+  saveCfg();
+  saveTabColors();
+  saveIcon();
+  showScreen('dash');
+  startAuto();
+}
+
+/* ── Auto-refresh ── */
+function startAuto() {
+  refresh();
+  if (timer) clearInterval(timer);
+  timer = setInterval(refresh, REFRESH * 1000);
+  // T212 on its own slower timer — other sources still update every 60s
+  if (t212Timer) clearInterval(t212Timer);
+  t212Timer = setInterval(async () => {
+    const t = await fetchT212();
+    // re-sum total with cached values from other sources
+    const others = [
+      parseFloat(document.getElementById('d-crypto').textContent.replace(/[^0-9.-]/g,'')) || 0,
+      parseFloat(document.getElementById('d-stocks').textContent.replace(/[^0-9.-]/g,'')) || 0,
+      parseFloat(document.getElementById('d-savings').textContent.replace(/[^0-9.-]/g,'')) || 0,
+      parseFloat(document.getElementById('d-cash').textContent.replace(/[^0-9.-]/g,'')) || 0,
+    ];
+    const total = t + others.reduce((a,b)=>a+b,0);
+    if (total > 0) {
+      document.getElementById('d-total').textContent = fmt(total);
+      saveHistory(total);
+    }
+  }, T212_REFRESH * 1000);
+  if (progTimer) clearInterval(progTimer);
+  progVal = 100;
+  progTimer = setInterval(() => {
+    progVal = Math.max(0, progVal - (100 / REFRESH));
+    document.getElementById('prog').style.width = progVal + '%';
+    if (progVal <= 0) progVal = 100;
+  }, 1000);
+}
+
+async function refresh() {
+  progVal = 100; document.getElementById('prog').style.width = '100%';
+  const [t, cr, st, sv, ca] = await Promise.all([fetchT212(), fetchCrypto(), fetchStocks(), calcSavings(), calcCash()]);
+  const total = [t, cr, st, sv, ca].reduce((a, b) => a + (b || 0), 0);
+  document.getElementById('d-total').textContent = fmt(total);
+  if (total > 0) {
+    const prevPeak = Math.max(...historyData.map(e => e.total), 0);
+    checkMilestones(total);
+    renderStreak();
+    renderGoal(total);
+    renderDonut([t || 0, cr || 0, st || 0, sv || 0, ca || 0]);
+    recordIntraday(total);
+    if (total > prevPeak && prevPeak > 0) fireConfetti();
+  }
+
+  // 1h change
+  const el1h = document.getElementById('d-change-1h');
+  const change1h = get1hChange(total);
+  if (change1h) {
+    el1h.textContent = (change1h.diff >= 0 ? '↑ +' : '↓ ') + fmt(Math.abs(change1h.diff)) + ' (' + (change1h.diff >= 0 ? '+' : '') + change1h.pct.toFixed(2) + '%) ' + change1h.label;
+    el1h.style.color = changeColor(change1h.pct);
+  } else {
+    el1h.textContent = '';
+    el1h.style.color = '';
+  }
+  document.getElementById('div-1h').style.display = change1h ? 'block' : 'none';
+
+  // 24h change
+  const todayStr = new Date().toISOString().split('T')[0];
+  const yesterdayStr = new Date(Date.now() - 864e5).toISOString().split('T')[0];
+  const weekAgoStr = new Date(Date.now() - 7 * 864e5).toISOString().split('T')[0];
+
+  const sorted = [...historyData].filter(e => e.date < todayStr).sort((a, b) => b.date.localeCompare(a.date));
+  const prior = sorted[0];
+  const weekPrior = sorted.find(e => e.date <= weekAgoStr);
+
+  const el = document.getElementById('d-change');
+  if (prior && prior.total > 0) {
+    const diff = total - prior.total;
+    const pct = ((diff / prior.total) * 100);
+    const isYesterday = prior.date === yesterdayStr;
+    const label = isYesterday ? '24h' : 'vs ' + fmtDateShort(prior.date);
+    el.textContent = (diff >= 0 ? '↑ +' : '↓ ') + fmt(Math.abs(diff)) + ' (' + (diff >= 0 ? '+' : '') + pct.toFixed(2) + '%) ' + label;
+    el.style.color = changeColor(pct);
+    el.className = 'hero-change';
+    document.getElementById('div-24h').style.display = 'block';
+  } else {
+    el.textContent = prior ? '' : 'No prior data yet';
+    el.style.color = '';
+    el.className = 'hero-change';
+    document.getElementById('div-24h').style.display = 'none';
+  }
+
+  const elW = document.getElementById('d-change-week');
+  if (weekPrior && weekPrior.total > 0) {
+    const diff = total - weekPrior.total;
+    const pct = ((diff / weekPrior.total) * 100);
+    elW.textContent = (diff >= 0 ? '↑ +' : '↓ ') + fmt(Math.abs(diff)) + ' (' + (diff >= 0 ? '+' : '') + pct.toFixed(2) + '%) 7d';
+    elW.style.color = changeColor(pct);
+    elW.className = 'hero-change';
+  } else {
+    elW.textContent = '';
+    elW.style.color = '';
+    elW.className = 'hero-change';
+  }
+
+  prevTotal = total;
+  document.getElementById('last-refresh').textContent = new Date().toLocaleTimeString('en-IE', { hour: '2-digit', minute: '2-digit' });
+  if (total > 0) saveHistory(total);
+}
+
+/* ── Trading 212 ── */
+let t212Cache = { val: 0, port: 0, cashVal: 0, ts: null };
+let t212RateLimitReset = null;
+function saveT212Cache() { store.set('nw-cache-t212', JSON.stringify(t212Cache)); }
+function loadT212Cache() { try { const r = store.get('nw-cache-t212'); if (r) t212Cache = JSON.parse(r.value); } catch(e){} }
+
+async function fetchT212() {
+  const setBadge = h => document.getElementById('t212-badge').innerHTML = h;
+
+  if (!cfg.key || !cfg.secret) {
+    setBadge('<span class="badge badge-idle">No credentials</span>');
+    document.getElementById('d-t212').textContent = '—';
+    document.getElementById('d-t212-sub').textContent = cfg.key ? 'Secret missing' : 'Not configured';
+    return t212Cache.val || 0;
+  }
+
+  // Respect rate limit backoff
+  if (t212RateLimitReset && Date.now() < t212RateLimitReset) {
+    const secsLeft = Math.ceil((t212RateLimitReset - Date.now()) / 1000);
+    setBadge(`<span class="badge badge-idle">Rate limited · ${secsLeft}s</span>`);
+    if (t212Cache.val) {
+      document.getElementById('d-t212').textContent = fmt(t212Cache.val);
+      document.getElementById('d-t212-sub').textContent = `Cached · retry in ${secsLeft}s`;
+    }
+    return t212Cache.val || 0;
+  }
+
+  const auth = 'Basic ' + btoa(cfg.key + ':' + cfg.secret);
+  const envPath = cfg.env === 'demo' ? 'demo' : 'live';
+  function t212url(path) {
+    if (cfg.proxy) return `${cfg.proxy}/${envPath}${path}`;
+    const base = cfg.env === 'demo' ? 'https://demo.trading212.com' : 'https://live.trading212.com';
+    return base + path;
+  }
+
+  try {
+    const sr = await fetch(t212url('/api/v0/equity/account/summary'), { headers: { Authorization: auth } });
+
+    if (sr.status === 429) {
+      const resetHeader = sr.headers.get('x-ratelimit-reset');
+      t212RateLimitReset = resetHeader ? parseInt(resetHeader) * 1000 : Date.now() + 60000;
+      const secsLeft = Math.ceil((t212RateLimitReset - Date.now()) / 1000);
+      setBadge(`<span class="badge badge-err">Rate limited · ${secsLeft}s</span>`);
+      document.getElementById('t212-err').innerHTML = `<div class="err-box">Rate limited by Trading 212 — showing cached value. Retrying automatically in ${secsLeft}s.</div>`;
+      if (t212Cache.val) document.getElementById('d-t212').textContent = fmt(t212Cache.val);
+      document.getElementById('d-t212-sub').textContent = 'Cached (rate limited)';
+      return t212Cache.val || 0;
+    }
+
+    if (!sr.ok) throw new Error('HTTP ' + sr.status + (sr.status === 401 ? ' — wrong account type (Live vs Demo), or key/secret has a typo' : ''));
+
+    t212RateLimitReset = null;
+    const sum = await sr.json();
+    const investments = sum.investments?.currentValue ?? sum.investedValue ?? 0;
+    const cashVal = sum.cash?.availableToTrade ?? 0;
+    const total = sum.totalValue ?? (investments + cashVal);
+
+    t212Cache = { val: total, port: investments, cashVal, ts: Date.now() };
+    saveT212Cache();
+
+    setBadge('<span class="badge badge-ok">● Live</span>');
+    document.getElementById('t212-pval').textContent = fmt(investments);
+    document.getElementById('t212-cash').textContent = fmt(cashVal);
+    document.getElementById('t212-err').innerHTML = '';
+    document.getElementById('d-t212').textContent = fmt(total);
+    document.getElementById('d-t212-sub').textContent = 'Portfolio + cash';
+    return total;
+
+  } catch (err) {
+    const isCors = err.message.includes('fetch') || err.message.includes('Network');
+    const msg = isCors
+      ? (cfg.proxy ? 'Could not reach proxy — check the Worker URL in settings.' : 'CORS blocked. Add your Cloudflare proxy URL in Settings.')
+      : err.message;
+    setBadge('<span class="badge badge-err">Error</span>');
+    document.getElementById('t212-err').innerHTML = `<div class="err-box">${msg}</div>`;
+    document.getElementById('d-t212').textContent = t212Cache.val ? fmt(t212Cache.val) : '—';
+    document.getElementById('d-t212-sub').textContent = t212Cache.val ? 'Cached (error)' : 'Failed';
+    return t212Cache.val || 0;
+  }
+}
+
+/* ── Crypto ── */
+let cryptoCache = { val: 0, chips: '', ts: null };
+let cryptoRateLimitReset = null;
+function saveCryptoCache() { store.set('nw-cache-crypto', JSON.stringify({ val: cryptoCache.val, ts: cryptoCache.ts })); }
+function loadCryptoCache() { try { const r = store.get('nw-cache-crypto'); if (r) { const d = JSON.parse(r.value); cryptoCache.val = d.val || 0; cryptoCache.ts = d.ts; } } catch(e){} }
+
+async function fetchCrypto() {
+  const setBadge = h => document.getElementById('cg-badge').innerHTML = h;
+  if (!cfg.coins || !cfg.coins.length) {
+    setBadge('<span class="badge badge-idle">None</span>');
+    document.getElementById('d-crypto').textContent = '—';
+    return 0;
+  }
+
+  // Respect rate limit backoff
+  if (cryptoRateLimitReset && Date.now() < cryptoRateLimitReset) {
+    const secsLeft = Math.ceil((cryptoRateLimitReset - Date.now()) / 1000);
+    setBadge(`<span class="badge badge-idle">Rate limited · ${secsLeft}s</span>`);
+    if (cryptoCache.val) {
+      document.getElementById('d-crypto').textContent = fmt(cryptoCache.val);
+      document.getElementById('d-crypto-sub').textContent = `Cached · retry in ${secsLeft}s`;
+      if (cryptoCache.chips) document.getElementById('coin-chips').innerHTML = cryptoCache.chips;
+    }
+    return cryptoCache.val || 0;
+  }
+
+  const ids = cfg.coins.map(c => c.id).join(','), cur = cfg.currency;
+  try {
+    const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${encodeURIComponent(ids)}&vs_currencies=${cur}&include_24hr_change=true`);
+
+    if (res.status === 429) {
+      const retryAfter = res.headers.get('retry-after');
+      cryptoRateLimitReset = retryAfter ? Date.now() + parseInt(retryAfter) * 1000 : Date.now() + 60000;
+      const secsLeft = Math.ceil((cryptoRateLimitReset - Date.now()) / 1000);
+      setBadge(`<span class="badge badge-idle">Rate limited · ${secsLeft}s</span>`);
+      document.getElementById('d-crypto').textContent = cryptoCache.val ? fmt(cryptoCache.val) : '—';
+      document.getElementById('d-crypto-sub').textContent = cryptoCache.val ? `Cached · retry in ${secsLeft}s` : 'Rate limited';
+      if (cryptoCache.chips) document.getElementById('coin-chips').innerHTML = cryptoCache.chips;
+      return cryptoCache.val || 0;
+    }
+
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    cryptoRateLimitReset = null;
+
+    let total = 0;
+    const grid = document.getElementById('coin-chips'); grid.innerHTML = '';
+    cfg.coins.forEach(c => {
+      const info = data[c.id];
+      const ch = document.createElement('div'); ch.className = 'chip';
+      if (info) {
+        const price = info[cur] || 0, change = info[cur + '_24h_change'] || 0, val = price * c.amt;
+        total += val;
+        const costBasis = c.cost ? c.cost * c.amt : null;
+        const pnl = costBasis ? val - costBasis : null;
+        const pnlPct = costBasis && costBasis > 0 ? ((pnl / costBasis) * 100).toFixed(1) : null;
+        const pnlStr = pnl !== null
+          ? `<div class="chip-sub" style="margin-top:3px;color:${changeColor(parseFloat(pnlPct))}">P&L ${pnl >= 0 ? '+' : ''}${fmt(pnl)} (${pnl >= 0 ? '+' : ''}${pnlPct}%)</div>`
+          : '';
+        ch.innerHTML = `<div class="chip-sym">${c.id}</div><div class="chip-val">${fmt(val)}</div><div class="chip-sub ${change >= 0 ? 'positive' : 'negative'}">${change >= 0 ? '↑' : '↓'} ${Math.abs(change).toFixed(2)}% 24h</div>${pnlStr}`;
+      } else {
+        ch.innerHTML = `<div class="chip-sym">${c.id}</div><div style="font-size:11px;color:var(--red)">ID not found on CoinGecko</div>`;
+      }
+      grid.appendChild(ch);
+    });
+
+    cryptoCache = { val: total, chips: document.getElementById('coin-chips').innerHTML, ts: Date.now() };
+    saveCryptoCache();
+    setBadge('<span class="badge badge-ok">● Live</span>');
+    document.getElementById('d-crypto').textContent = fmt(total);
+    document.getElementById('d-crypto-sub').textContent = cfg.coins.length + ' coin' + (cfg.coins.length > 1 ? 's' : '');
+    return total;
+
+  } catch (e) {
+    setBadge('<span class="badge badge-err">Error</span>');
+    document.getElementById('d-crypto').textContent = cryptoCache.val ? fmt(cryptoCache.val) : '—';
+    document.getElementById('d-crypto-sub').textContent = cryptoCache.val ? 'Cached (error)' : 'Failed';
+    if (cryptoCache.chips) document.getElementById('coin-chips').innerHTML = cryptoCache.chips;
+    return cryptoCache.val || 0;
+  }
+}
+
+/* ── Stocks ── */
+let stocksCache = { val: 0, chips: '', ts: null };
+function saveStocksCache() { store.set('nw-cache-stocks', JSON.stringify({ val: stocksCache.val, ts: stocksCache.ts })); }
+function loadStocksCache() { try { const r = store.get('nw-cache-stocks'); if (r) { const d = JSON.parse(r.value); stocksCache.val = d.val || 0; stocksCache.ts = d.ts; } } catch(e){} }
+
+async function fetchStocks() {
+  const setBadge = h => document.getElementById('stock-badge').innerHTML = h;
+  if (!cfg.stocks || !cfg.stocks.length) { setBadge('<span class="badge badge-idle">None</span>'); document.getElementById('d-stocks').textContent = '—'; return 0; }
+
+  // Fetch FX rate from Yahoo: e.g. GBPEUR=X, USDEUR=X
+  async function getFxRate(fromCur, toCur) {
+    if (fromCur.toUpperCase() === toCur.toUpperCase()) return 1;
+    const pair = fromCur.toUpperCase() + toCur.toUpperCase() + '=X';
+    try {
+      const url = cfg.proxy
+        ? `${cfg.proxy}/yahoo/${encodeURIComponent(pair)}`
+        : `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(pair)}?interval=1d&range=5d`;
+      const res = await fetch(url);
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data?.chart?.result?.[0]?.meta?.regularMarketPrice || null;
+    } catch (e) { return null; }
+  }
+
+  async function fetchTicker(ticker) {
+    const toTry = ticker.includes('.') ? [ticker] : [ticker, ticker + '.L'];
+    for (const t of toTry) {
+      try {
+        const url = cfg.proxy
+          ? `${cfg.proxy}/yahoo/${encodeURIComponent(t)}`
+          : `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(t)}?interval=1d&range=5d`;
+        const res = await fetch(url);
+        if (!res.ok) continue;
+        const data = await res.json();
+        const meta = data?.chart?.result?.[0]?.meta;
+        if (!meta || !meta.regularMarketPrice) continue;
+
+        let price = meta.regularMarketPrice;
+        let stockCur = (meta.currency || 'USD').toUpperCase();
+
+        // GBX / GBp = pence — divide by 100 to get GBP
+        if (stockCur === 'GBP' && meta.exchangeName && meta.exchangeName.includes('LSE')) {
+          // Yahoo sometimes reports GBP but means pence for LSE stocks — detect by price magnitude
+          // If price > 500 for a stock that "should" be a reasonable share price, it's likely pence
+          // More reliably: check if currency tag is 'GBp' (lowercase p)
+        }
+        const rawCur = meta.currency || 'USD';
+        if (rawCur === 'GBp' || rawCur === 'GBX' || rawCur === 'GBx') {
+          price = price / 100;
+          stockCur = 'GBP';
+        }
+
+        const prev = meta.chartPreviousClose || meta.previousClose || price;
+        const change = prev > 0 ? ((price - prev) / prev * 100) : 0;
+        return { price, change, resolvedTicker: t, stockCur };
+      } catch (e) { continue; }
+    }
+    return null;
+  }
+
+  // Pre-fetch needed FX rates
+  const displayCur = cfg.currency.toUpperCase();
+  const fxCache = {};
+  async function convert(amount, fromCur) {
+    if (fromCur === displayCur) return amount;
+    const key = fromCur + '_' + displayCur;
+    if (fxCache[key] == null) fxCache[key] = await getFxRate(fromCur, displayCur);
+    return fxCache[key] ? amount * fxCache[key] : amount; // fallback: no conversion
+  }
+
+  let total = 0;
+  const grid = document.getElementById('stock-chips'); grid.innerHTML = '';
+
+  const results = await Promise.all(cfg.stocks.map(async s => {
+    const result = await fetchTicker(s.ticker);
+    if (!result) return { ...s, ok: false };
+    const valInStockCur = result.price * s.qty;
+    const valInDisplay = await convert(valInStockCur, result.stockCur);
+    return { ...s, price: result.price, stockCur: result.stockCur, val: valInDisplay, change: result.change, resolvedTicker: result.resolvedTicker, ok: true };
+  }));
+
+  let anyOk = false;
+  results.forEach(r => {
+    if (r.ok) { total += r.val; anyOk = true; }
+    const ch = document.createElement('div'); ch.className = 'chip';
+    if (r.ok) {
+      const label = r.resolvedTicker !== r.ticker ? `${r.ticker} (${r.resolvedTicker})` : r.ticker;
+      const priceStr = r.stockCur === displayCur
+        ? `${r.qty} × ${fmt(r.price)}`
+        : `${r.qty} × ${r.price.toFixed(2)} ${r.stockCur}`;
+      const costBasis = r.cost || null;  // total euros invested
+      const pnl = costBasis ? r.val - costBasis : null;
+      const pnlPct = costBasis && costBasis > 0 ? ((pnl / costBasis) * 100).toFixed(1) : null;
+      const pnlStr = pnl !== null
+        ? `<div class="chip-sub" style="margin-top:2px;color:${changeColor(parseFloat(pnlPct))}">P&L ${pnl >= 0 ? '+' : ''}${fmt(pnl)} (${pnl >= 0 ? '+' : ''}${pnlPct}%)</div>`
+        : '';
+      ch.innerHTML = `
+        <div class="chip-sym">${label}${r.label ? ' · ' + r.label : ''}</div>
+        <div class="chip-val">${fmt(r.val)}</div>
+        <div class="chip-sub">${priceStr}</div>
+        <div class="chip-sub ${r.change >= 0 ? 'positive' : 'negative'}">${r.change >= 0 ? '↑' : '↓'} ${Math.abs(r.change).toFixed(2)}% today</div>
+        ${pnlStr}`;
+    } else {
+      ch.innerHTML = `<div class="chip-sym">${r.ticker}${r.label ? ' · ' + r.label : ''}</div><div style="font-size:11px;color:var(--red)">${cfg.proxy ? 'Not found — check ticker' : 'Add proxy URL in settings'}</div>`;
+    }
+    grid.appendChild(ch);
+  });
+
+  setBadge(anyOk ? '<span class="badge badge-ok">● Live</span>' : '<span class="badge badge-err">Error</span>');
+  if (anyOk) {
+    stocksCache = { val: total, chips: grid.innerHTML, ts: Date.now() };
+    saveStocksCache();
+    document.getElementById('d-stocks').textContent = fmt(total);
+  } else {
+    document.getElementById('d-stocks').textContent = stocksCache.val ? fmt(stocksCache.val) : '—';
+    if (stocksCache.chips) grid.innerHTML = stocksCache.chips;
+  }
+  document.getElementById('d-stocks-sub').textContent = cfg.stocks.length + ' holding' + (cfg.stocks.length > 1 ? 's' : '') + (anyOk ? '' : ' · cached');
+  return anyOk ? total : (stocksCache.val || 0);
+}
+
+/* ── Savings ── */
+function calcSavings() {
+  const bal = cfg.savings?.balance || 0;
+  document.getElementById('d-savings').textContent = bal > 0 ? fmt(bal) : '—';
+  document.getElementById('d-savings-sub').textContent = bal > 0 ? 'manual balance' : 'Not set';
+  document.getElementById('rev-bal-d').textContent = fmt(bal);
+  return bal;
+}
+
+/* ── Cash ── */
+function calcCash() {
+  const accounts = cfg.cashAccounts || [];
+  const grid = document.getElementById('cash-chips'); grid.innerHTML = '';
+  if (!accounts.length) { document.getElementById('d-cash').textContent = '—'; document.getElementById('d-cash-sub').textContent = 'None added'; return 0; }
+  let total = 0;
+  accounts.forEach(a => {
+    total += a.balance;
+    const ch = document.createElement('div'); ch.className = 'chip';
+    ch.innerHTML = `<div class="chip-sym">${a.name || 'Account'}</div><div class="chip-val">${fmt(a.balance)}</div>`;
+    grid.appendChild(ch);
+  });
+  document.getElementById('d-cash').textContent = fmt(total);
+  document.getElementById('d-cash-sub').textContent = accounts.length + ' account' + (accounts.length > 1 ? 's' : '') + ' · manual';
+  return total;
+}
+
+/* ── History ── */
+let historyData = [];
+let histRange = '24h';
+let histChart = null;
+
+function loadHistory() {
+  const r = store.get('nw-history');
+  historyData = r ? JSON.parse(r.value) : [];
+}
+
+function saveHistory(total) {
+  const today = new Date().toISOString().split('T')[0];
+  const existing = historyData.find(e => e.date === today);
+  // Only write today's entry once — first recording of the day wins
+  if (!existing) {
+    historyData.push({ date: today, total });
+    historyData.sort((a, b) => a.date.localeCompare(b.date));
+    store.set('nw-history', JSON.stringify(historyData));
+  }
+  // Peak is tracked separately and only ever moves up
+  const storedPeak = parseFloat(store.get('nw-alltime-peak')?.value || '0');
+  if (total > storedPeak) store.set('nw-alltime-peak', String(total));
+  if (document.getElementById('screen-history').classList.contains('active')) renderHistory();
+}
+
+function setRange(days, btn) {
+  histRange = days;
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  renderHistory();
+}
+
+function clearHistory() {
+  if (!confirm('Delete all history? This cannot be undone.')) return;
+  historyData = [];
+  store.del('nw-history');
+  renderHistory();
+}
+
+function deleteHistoryEntry(date) {
+  historyData = historyData.filter(e => e.date !== date);
+  store.set('nw-history', JSON.stringify(historyData));
+  renderHistory();
+}
+
+function addManualEntry() {
+  const date = document.getElementById('manual-date').value;
+  const total = parseFloat(document.getElementById('manual-total').value) || 0;
+  if (!date || !total) { alert('Enter both a date and a total.'); return; }
+  const exists = historyData.find(e => e.date === date);
+  if (exists) { alert('An entry for ' + date + ' already exists. Delete it first if you want to replace it.'); return; }
+  historyData.push({ date, total });
+  historyData.sort((a, b) => a.date.localeCompare(b.date));
+  store.set('nw-history', JSON.stringify(historyData));
+  document.getElementById('manual-total').value = '';
+  renderHistory();
+}
+
+function runBackfill() {
+  const startDate = document.getElementById('bf-start').value;
+  const endDate = document.getElementById('bf-end').value;
+  const startVal = parseFloat(document.getElementById('bf-start-val').value) || 0;
+  const endVal = parseFloat(document.getElementById('bf-end-val').value) || 0;
+  const step = parseInt(document.getElementById('bf-freq').value) || 7;
+  const res = document.getElementById('bf-result');
+
+  if (!startDate || !endDate || !startVal || !endVal) { res.textContent = 'Fill in all four fields first.'; return; }
+  if (startDate >= endDate) { res.textContent = 'Start date must be before end date.'; return; }
+
+  const start = new Date(startDate + 'T00:00:00');
+  const end = new Date(endDate + 'T00:00:00');
+  const totalDays = (end - start) / 864e5;
+  let added = 0, skipped = 0;
+
+  /* Walk from start to end in steps, interpolating linearly */
+  let cur = new Date(start);
+  while (cur <= end) {
+    const dateStr = cur.toISOString().split('T')[0];
+    const daysPast = (cur - start) / 864e5;
+    const frac = totalDays > 0 ? daysPast / totalDays : 0;
+    /* Add gentle daily noise (±0.3%) so bars look organic, not perfectly straight */
+    const noise = 1 + (Math.sin(daysPast * 7.3) * 0.003);
+    const interpolated = Math.round((startVal + (endVal - startVal) * frac) * noise);
+
+    if (!historyData.find(e => e.date === dateStr)) {
+      historyData.push({ date: dateStr, total: interpolated });
+      added++;
+    } else {
+      skipped++;
+    }
+    cur.setDate(cur.getDate() + step);
+  }
+  /* Always include the end date itself */
+  if (!historyData.find(e => e.date === endDate)) {
+    historyData.push({ date: endDate, total: endVal });
+    added++;
+  }
+
+  historyData.sort((a, b) => a.date.localeCompare(b.date));
+  store.set('nw-history', JSON.stringify(historyData));
+  res.textContent = `Done — ${added} entries added, ${skipped} existing entries kept.`;
+  renderHistory();
+}
+
+function fmtDateShort(iso) {
+  const d = new Date(iso + 'T00:00:00');
+  return d.toLocaleDateString('en-IE', { day: 'numeric', month: 'short' });
+}
+
+function deleteIntradayEntry(ts) {
+  intradayBuffer = intradayBuffer.filter(e => e.ts !== ts);
+  saveIntradayBuffer();
+  renderIntraday();
+}
+
+function clearIntraday() {
+  if (!confirm('Clear all 24h refresh history?')) return;
+  intradayBuffer = [];
+  saveIntradayBuffer();
+  renderIntraday();
+}
+
+async function waitForChart(timeout = 5000) {
+  if (typeof Chart !== 'undefined') return true;
+  return new Promise(resolve => {
+    const start = Date.now();
+    const check = setInterval(() => {
+      if (typeof Chart !== 'undefined') { clearInterval(check); resolve(true); }
+      else if (Date.now() - start > timeout) { clearInterval(check); resolve(false); }
+    }, 100);
+  });
+}
+
+function fmtTime(ts) {
+  return new Date(ts).toLocaleTimeString('en-IE', { hour: '2-digit', minute: '2-digit' });
+}
+
+async function renderIntraday() {
+  const data = [...intradayBuffer].sort((a, b) => a.ts - b.ts);
+
+  // Clear stats — show intraday-specific ones
+  const peak = data.length ? Math.max(...data.map(e => e.total)) : 0;
+  const first = data[0]?.total || 0;
+  const last = data[data.length - 1]?.total || 0;
+  const diff = last - first;
+  const pct = first > 0 ? ((diff / first) * 100) : 0;
+
+  document.getElementById('h-peak').textContent = peak ? fmt(peak) : '—';
+  document.getElementById('h-peak').style.color = '';
+  const peakDateEl = document.getElementById('h-peak-date');
+  if (peakDateEl) {
+    const peakEntry = data.find(e => e.total === peak);
+    peakDateEl.textContent = peakEntry ? fmtTime(peakEntry.ts) : '';
+  }
+  const chEl = document.getElementById('h-change');
+  if (data.length >= 2) {
+    chEl.textContent = (diff >= 0 ? '+' : '') + fmt(diff) + ' (' + (diff >= 0 ? '+' : '') + pct.toFixed(2) + '%)';
+    chEl.style.color = changeColor(pct);
+    chEl.className = 'stat-val';
+  } else {
+    chEl.textContent = '—'; chEl.style.color = '';
+  }
+  document.getElementById('h-days').textContent = data.length;
+  document.getElementById('h-days-label').textContent = 'Refreshes';
+  perdayEl.textContent = data.length >= 2 ? (diff >= 0 ? '+' : '') + fmt(diff) : '—';
+  if (data.length >= 2) perdayEl.style.color = changeColor(pct);
+
+  renderBestWorst();
+  renderProjection();
+
+  // Chart
+  try {
+    if (histChart) { histChart.destroy(); histChart = null; }
+    if (window._yAxisChart) { window._yAxisChart.destroy(); window._yAxisChart = null; }
+    const chartLoaded = await waitForChart();
+    const wrap = document.getElementById('chart-wrap');
+    const scrollWrap = document.getElementById('chart-scroll-wrap');
+    if (data.length < 2 || !chartLoaded) {
+      wrap.innerHTML = '<div class="empty">Need more refresh data — check back later</div>';
+      document.getElementById('yaxis-chart').style.display = 'none';
+    } else {
+      wrap.innerHTML = '<canvas id="hist-chart"></canvas>';
+      document.getElementById('yaxis-chart').style.display = 'block';
+      const canvas = document.getElementById('hist-chart');
+      const POINT_W = 28;
+      const chartW = Math.max(scrollWrap.clientWidth || 280, data.length * POINT_W);
+      canvas.style.width = chartW + 'px'; canvas.style.height = '200px';
+      canvas.width = chartW; canvas.height = 200;
+      wrap.style.width = chartW + 'px'; wrap.style.height = '200px';
+
+      const values = data.map(e => parseFloat(e.total.toFixed(2)));
+      const labels = data.map(e => fmtTime(e.ts));
+      const minVal = Math.min(...values) * 0.997;
+      const maxVal = Math.max(...values) * 1.003;
+      const pointColors = values.map((v, i) => {
+        if (i === 0) return '#6e8efb';
+        const p = values[i-1] > 0 ? ((v - values[i-1]) / values[i-1]) * 100 : 0;
+        return changeColor(p);
+      });
+
+      const sharedScaleY = { min: minVal, max: maxVal };
+
+      // Main scrollable chart — no y-axis ticks
+      histChart = new Chart(canvas.getContext('2d'), {
+        type: 'line',
+        data: { labels, datasets: [{ data: values, borderColor: '#6e8efb', backgroundColor: 'rgba(110,142,251,0.08)', borderWidth: 2, pointBackgroundColor: pointColors, pointBorderColor: pointColors, pointRadius: 3, fill: true, tension: 0.3 }] },
+        options: {
+          responsive: false, animation: false,
+          plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => fmt(ctx.parsed.y), title: ctx => data[ctx[0].dataIndex] ? fmtTime(data[ctx[0].dataIndex].ts) : '' }, backgroundColor: '#1a1a1a', titleColor: '#888', bodyColor: '#f0f0f0', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1 } },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#555', font: { size: 10 }, maxRotation: 45, autoSkip: true, maxTicksLimit: 12 } },
+            y: { ...sharedScaleY, display: false }
+          }
+        }
+      });
+
+      // Sticky y-axis chart
+      const yCanvas = document.getElementById('yaxis-chart');
+      yCanvas.width = 46; yCanvas.height = 200;
+      window._yAxisChart = new Chart(yCanvas.getContext('2d'), {
+        type: 'line',
+        data: { labels: [''], datasets: [{ data: [minVal], borderColor: 'transparent', pointRadius: 0 }] },
+        options: {
+          responsive: false, animation: false,
+          plugins: { legend: { display: false }, tooltip: { enabled: false } },
+          scales: {
+            x: { display: false },
+            y: { ...sharedScaleY, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#555', font: { size: 10 }, callback: v => fmtShort(v) } }
+          }
+        }
+      });
+
+      // Auto-scroll to most recent (rightmost)
+      setTimeout(() => { if (scrollWrap) scrollWrap.scrollLeft = scrollWrap.scrollWidth; }, 50);
+    }
+  } catch(e) {
+    const wrap = document.getElementById('chart-wrap');
+    if (wrap) wrap.innerHTML = '<div class="empty" style="color:var(--red)">Chart error</div>';
+  }
+
+  // List — every refresh, most recent first
+  const list = document.getElementById('hist-list');
+  if (data.length === 0) { list.innerHTML = '<div class="empty" style="padding:24px">No intraday data yet — opens after the first refresh.</div>'; return; }
+  const reversed = [...data].reverse();
+  list.innerHTML = `<div style="display:flex;justify-content:flex-end;padding:10px 0 4px">
+    <button class="btn btn-sm btn-danger" onclick="clearIntraday()">Clear all 24h history</button>
+  </div>` + reversed.map((e, i) => {
+    const next = reversed[i + 1];
+    const d = next ? e.total - next.total : null;
+    const p = next && next.total > 0 ? ((d / next.total) * 100) : null;
+    const diffStr = d !== null
+      ? `<div class="hist-diff" style="color:${changeColor(p)}">${d >= 0 ? '↑ +' : '↓ '}${fmt(Math.abs(d))} (${d >= 0 ? '+' : ''}${p.toFixed(2)}%)</div>`
+      : '';
+    return `<div class="hist-row">
+      <div class="hist-date">${fmtTime(e.ts)}<div style="font-size:11px;color:var(--text3)">${new Date(e.ts).toLocaleDateString('en-IE',{day:'numeric',month:'short'})}</div></div>
+      <div style="text-align:right;flex:1"><div class="hist-total">${fmt(e.total)}</div>${diffStr}</div>
+      <button class="btn btn-sm btn-danger" style="flex-shrink:0" onclick="deleteIntradayEntry(${e.ts})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+async function renderHistory() {
+  // 24h intraday mode — use refresh buffer instead of daily history
+  if (histRange === '24h') {
+    renderIntraday();
+    return;
+  }
+
+  const all = [...historyData].sort((a, b) => a.date.localeCompare(b.date));
+  const cutoff = histRange > 0 ? new Date(Date.now() - histRange * 864e5).toISOString().split('T')[0] : '0000-00-00';
+  const data = all.filter(e => e.date >= cutoff);
+  renderBestWorst();
+  renderProjection();
+
+  /* ── Stats ── */
+  if (data.length === 0) {
+    document.getElementById('h-peak').textContent = '—';
+    document.getElementById('h-change').textContent = '—';
+    document.getElementById('h-days').textContent = '0';
+    document.getElementById('h-perday').textContent = '—';
+  } else {
+    const histPeak = Math.max(...all.map(e => e.total));
+    const storedPeak = parseFloat(store.get('nw-alltime-peak')?.value || '0');
+    const peak = Math.max(histPeak, storedPeak);
+    const peakEntry = all.find(e => e.total === peak);
+    const first = data[0].total, last = data[data.length - 1].total;
+    const diff = last - first, pct = first > 0 ? ((diff / first) * 100).toFixed(1) : 0;
+    document.getElementById('h-peak').textContent = fmt(peak);
+    document.getElementById('h-peak').style.color = '';
+    const peakDateEl = document.getElementById('h-peak-date');
+    if (peakDateEl && peakEntry) peakDateEl.textContent = fmtDateShort(peakEntry.date);
+    const chEl = document.getElementById('h-change');
+    chEl.textContent = (diff >= 0 ? '+' : '') + fmt(diff) + ' (' + (diff >= 0 ? '+' : '') + pct + '%)';
+    chEl.className = 'stat-val ' + (diff >= 0 ? 'positive' : 'negative');
+    document.getElementById('h-days').textContent = data.length;
+    document.getElementById('h-days-label').textContent = 'Days';
+    document.getElementById('h-days-label').textContent = 'Days';
+
+    // Per day this year
+    const yearStart = new Date(new Date().getFullYear() + '-01-01').toISOString().split('T')[0];
+    const allSorted = [...historyData].sort((a, b) => a.date.localeCompare(b.date));
+    const yearEntries = allSorted.filter(e => e.date >= yearStart);
+    const perdayEl = document.getElementById('h-perday');
+    if (yearEntries.length >= 2) {
+      const earliest = yearEntries[0], latest = yearEntries[yearEntries.length - 1];
+      const daysDiff = Math.max(1, Math.floor((new Date(latest.date) - new Date(earliest.date)) / 864e5));
+      const perDay = (latest.total - earliest.total) / daysDiff;
+      perdayEl.textContent = (perDay >= 0 ? '+' : '') + fmt(perDay);
+      perdayEl.style.color = changeColor((perDay / earliest.total) * 100 * 365);
+    } else if (allSorted.length >= 2) {
+      // Fall back to all-time per day if less than 2 entries this year
+      const earliest = allSorted[0], latest = allSorted[allSorted.length - 1];
+      const daysDiff = Math.max(1, Math.floor((new Date(latest.date) - new Date(earliest.date)) / 864e5));
+      const perDay = (latest.total - earliest.total) / daysDiff;
+      perdayEl.textContent = (perDay >= 0 ? '+' : '') + fmt(perDay);
+      perdayEl.style.color = changeColor((perDay / earliest.total) * 100 * 365);
+    } else {
+      perdayEl.textContent = '—';
+    }
+  }
+
+  /* ── Chart ── */
+  try {
+    if (histChart) { histChart.destroy(); histChart = null; }
+    if (window._yAxisChart) { window._yAxisChart.destroy(); window._yAxisChart = null; }
+
+    const chartLoaded = await waitForChart();
+    const wrap = document.getElementById('chart-wrap');
+    const scrollWrap = document.getElementById('chart-scroll-wrap');
+
+    if (data.length === 0 || !chartLoaded) {
+      wrap.innerHTML = data.length === 0
+        ? '<div class="empty">No data in this range</div>'
+        : '<div class="empty" style="color:var(--text3);font-size:12px">Chart unavailable — check internet connection</div>';
+      document.getElementById('yaxis-chart').style.display = 'none';
+    } else {
+      wrap.innerHTML = '<canvas id="hist-chart"></canvas>';
+      document.getElementById('yaxis-chart').style.display = 'block';
+      const canvas = document.getElementById('hist-chart');
+      const BAR_W = 36;
+      const chartW = Math.max((scrollWrap?.clientWidth || 280), data.length * (BAR_W + 6));
+      const chartH = 200;
+      canvas.style.width = chartW + 'px';
+      canvas.style.height = chartH + 'px';
+      canvas.width = chartW;
+      canvas.height = chartH;
+      wrap.style.width = chartW + 'px';
+      wrap.style.height = chartH + 'px';
+
+      const values = data.map(e => parseFloat(e.total.toFixed(2)));
+      const labels = data.map(e => fmtDateShort(e.date));
+      const minVal = Math.min(...values) * 0.97;
+      const maxVal = Math.max(...values) * 1.02;
+      const chartType = cfg.chartType || 'bar';
+
+      const barColors = values.map((v, i) => {
+        if (i === 0) return 'rgba(232,255,90,0.8)';
+        const pct = values[i - 1] > 0 ? ((v - values[i - 1]) / values[i - 1]) * 100 : 0;
+        return changeColor(pct).replace('rgb(', 'rgba(').replace(')', ',0.8)');
+      });
+
+      const pointColors = values.map((v, i) => {
+        if (i === 0) return '#e8ff5a';
+        const pct = values[i - 1] > 0 ? ((v - values[i - 1]) / values[i - 1]) * 100 : 0;
+        return changeColor(pct);
+      });
+
+      const dataset = chartType === 'line'
+        ? { data: values, borderColor: '#e8ff5a', backgroundColor: 'rgba(232,255,90,0.08)', borderWidth: 2, pointBackgroundColor: pointColors, pointBorderColor: pointColors, pointRadius: 5, pointHoverRadius: 7, fill: true, tension: 0.3 }
+        : { data: values, backgroundColor: barColors, borderRadius: 3, borderSkipped: false };
+
+      const sharedScaleY = { min: minVal, max: maxVal };
+
+      histChart = new Chart(canvas.getContext('2d'), {
+        type: chartType,
+        data: { labels, datasets: [dataset] },
+        options: {
+          responsive: false, animation: false,
+          plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => fmt(ctx.parsed.y), title: ctx => data[ctx[0].dataIndex]?.date || '' }, backgroundColor: '#1a1a1a', titleColor: '#888', bodyColor: '#f0f0f0', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1 } },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#555', font: { size: 10 }, maxRotation: 45, autoSkip: data.length > 30 } },
+            y: { ...sharedScaleY, display: false }
+          }
+        }
+      });
+
+      // Sticky y-axis
+      const yCanvas = document.getElementById('yaxis-chart');
+      yCanvas.width = 46; yCanvas.height = chartH;
+      window._yAxisChart = new Chart(yCanvas.getContext('2d'), {
+        type: 'bar',
+        data: { labels: [''], datasets: [{ data: [minVal], backgroundColor: 'transparent' }] },
+        options: {
+          responsive: false, animation: false,
+          plugins: { legend: { display: false }, tooltip: { enabled: false } },
+          scales: {
+            x: { display: false },
+            y: { ...sharedScaleY, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#555', font: { size: 10 }, callback: v => fmtShort(v) } }
+          }
+        }
+      });
+
+      // Auto-scroll to most recent
+      setTimeout(() => { if (scrollWrap) scrollWrap.scrollLeft = scrollWrap.scrollWidth; }, 50);
+    }
+  } catch(chartErr) {
+    console.error('Chart render error:', chartErr);
+    const wrap = document.getElementById('chart-wrap');
+    if (wrap) wrap.innerHTML = '<div class="empty" style="color:var(--red);font-size:12px">Chart error — ' + chartErr.message + '</div>';
+  }
+  /* ── Scrollable list — all entries, most recent first ── */
+  const list = document.getElementById('hist-list');
+  // Show ALL history entries regardless of range filter for the log
+  const allReversed = [...historyData].sort((a, b) => b.date.localeCompare(a.date));
+  if (allReversed.length === 0) {
+    list.innerHTML = '<div class="empty" style="padding:24px">No history yet.</div>';
+    return;
+  }
+  list.innerHTML = allReversed.map((e, i) => {
+    const next = allReversed[i + 1];
+    const diff = next ? e.total - next.total : null;
+    const pct = next && next.total > 0 ? ((diff / next.total) * 100) : null;
+    const diffStr = diff !== null
+      ? `<div class="hist-diff" style="color:${changeColor(pct)}">${diff >= 0 ? '↑ +' : '↓ '}${fmt(Math.abs(diff))} (${diff >= 0 ? '+' : ''}${pct.toFixed(1)}%)</div>`
+      : '';
+    return `<div class="hist-row">
+      <div class="hist-date">${fmtDateShort(e.date)}<div style="font-size:11px;color:var(--text3)">${e.date}</div></div>
+      <div style="text-align:right;flex:1"><div class="hist-total">${fmt(e.total)}</div>${diffStr}</div>
+      <button class="btn btn-sm btn-danger" style="flex-shrink:0" onclick="deleteHistoryEntry('${e.date}')">✕</button>
+    </div>`;
+  }).join('');
+}
+
+/* ── App icon customisation ── */
+function buildIconSvg(emoji, bg, fg) {
+  const e = emoji || '₿';
+  const fontSize = e.length > 1 ? 70 : 110;
+  return `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='${bg}'/><text x='96' y='130' font-size='${fontSize}' text-anchor='middle' fill='${fg}'>${e}</text></svg>`;
+}
+
+function buildManifestUrl(emoji, bg, fg) {
+  const svg = buildIconSvg(emoji, bg, fg);
+  const iconSrc = 'data:image/svg+xml,' + encodeURIComponent(svg);
+  const manifest = {
+    name: 'Net Worth', short_name: 'Worth', display: 'standalone',
+    background_color: bg, theme_color: bg, start_url: '.',
+    icons: [{ src: iconSrc, sizes: '192x192', type: 'image/svg+xml' }]
+  };
+  return 'data:application/manifest+json,' + encodeURIComponent(JSON.stringify(manifest));
+}
+
+function previewIcon() {
+  const emoji = document.getElementById('icon-emoji').value.trim() || '₿';
+  const bg = document.getElementById('icon-bg').value;
+  const fg = document.getElementById('icon-fg').value;
+  const preview = document.getElementById('icon-preview');
+  preview.style.background = bg;
+  preview.style.color = fg;
+  preview.textContent = emoji;
+}
+
+function applyIcon() {
+  const saved = JSON.parse(store.get('nw-icon')?.value || '{}');
+  const emoji = saved.emoji || '₿';
+  const bg = saved.bg || '#0f0f0f';
+  const fg = saved.fg || '#e8ff5a';
+  // Update manifest link
+  const link = document.querySelector('link[rel="manifest"]');
+  if (link) link.href = buildManifestUrl(emoji, bg, fg);
+  // Update preview
+  const preview = document.getElementById('icon-preview');
+  if (preview) { preview.style.background = bg; preview.style.color = fg; preview.textContent = emoji; }
+  // Populate inputs
+  const ei = document.getElementById('icon-emoji');
+  const bi = document.getElementById('icon-bg');
+  const fi = document.getElementById('icon-fg');
+  if (ei) ei.value = emoji === '₿' ? '' : emoji;
+  if (bi) bi.value = bg;
+  if (fi) fi.value = fg;
+}
+
+function saveIcon() {
+  const emoji = document.getElementById('icon-emoji').value.trim() || '₿';
+  const bg = document.getElementById('icon-bg').value;
+  const fg = document.getElementById('icon-fg').value;
+  store.set('nw-icon', JSON.stringify({ emoji, bg, fg }));
+  applyIcon();
+}
+
+/* ── Confetti ── */
+function fireConfetti() {
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999';
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const pieces = Array.from({ length: 120 }, () => ({
+    x: Math.random() * canvas.width,
+    y: -10 - Math.random() * 40,
+    r: 4 + Math.random() * 6,
+    d: 2 + Math.random() * 3,
+    color: ['#6e8efb','#30d158','#5ac8fa','#bf5af2','#ff9f0a','#ff453a','#ffffff'][Math.floor(Math.random() * 7)],
+    tilt: Math.random() * 10 - 5,
+    tiltSpeed: 0.1 + Math.random() * 0.2,
+    angle: 0
+  }));
+
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces.forEach(p => {
+      p.angle += p.tiltSpeed;
+      p.y += p.d;
+      p.x += Math.sin(p.angle) * 1.5;
+      p.tilt = Math.sin(p.angle) * 10;
+      ctx.beginPath();
+      ctx.ellipse(p.x, p.y, p.r, p.r * 0.4, p.tilt * Math.PI / 180, 0, Math.PI * 2);
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = Math.max(0, 1 - frame / 140);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+    frame++;
+    if (frame < 160) requestAnimationFrame(draw);
+    else canvas.remove();
+  }
+  draw();
+}
+
+/* ── Tab icon colours ── */
+const TAB_DEFAULTS = { dash: '#6e8efb', balances: '#5ac8fa', history: '#30d158', settings: '#bf5af2' };
+
+function applyTabColors() {
+  const saved = JSON.parse(store.get('nw-tab-colors')?.value || '{}');
+  Object.entries(TAB_DEFAULTS).forEach(([tab, def]) => {
+    const color = saved[tab] || def;
+    const btn = document.getElementById('nav-' + tab);
+    if (btn) btn.style.setProperty('--tab-color', color);
+  });
+}
+
+function saveTabColors() {
+  const colors = {};
+  Object.keys(TAB_DEFAULTS).forEach(tab => {
+    const input = document.getElementById('color-' + tab);
+    if (input) colors[tab] = input.value;
+  });
+  store.set('nw-tab-colors', JSON.stringify(colors));
+  applyTabColors();
+}
+
+function loadTabColorInputs() {
+  const saved = JSON.parse(store.get('nw-tab-colors')?.value || '{}');
+  Object.entries(TAB_DEFAULTS).forEach(([tab, def]) => {
+    const input = document.getElementById('color-' + tab);
+    if (input) input.value = saved[tab] || def;
+  });
+}
+
+/* ── Intraday rolling buffer (for 1h change) ── */
+let intradayBuffer = [];
+
+function loadIntradayBuffer() {
+  try {
+    const r = store.get('nw-intraday');
+    if (r) intradayBuffer = JSON.parse(r.value);
+    const cutoff = Date.now() - 24 * 3600000;
+    intradayBuffer = intradayBuffer.filter(e => e.ts >= cutoff);
+  } catch(e) { intradayBuffer = []; }
+}
+
+function saveIntradayBuffer() {
+  store.set('nw-intraday', JSON.stringify(intradayBuffer));
+}
+
+function recordIntraday(total) {
+  const now = Date.now();
+  intradayBuffer.push({ ts: now, total });
+  const cutoff = now - 24 * 3600000;
+  intradayBuffer = intradayBuffer.filter(e => e.ts >= cutoff);
+  saveIntradayBuffer();
+}
+
+function get1hChange(total) {
+  if (intradayBuffer.length < 2) return null; // need at least 2 points
+  const oneHourAgo = Date.now() - 3600000;
+  // Use oldest entry at least 1hr old, otherwise just the oldest entry we have
+  const old = intradayBuffer.filter(e => e.ts <= oneHourAgo);
+  const ref = old.length ? old[old.length - 1] : intradayBuffer[0];
+  const diff = total - ref.total;
+  const mins = Math.max(1, Math.round((Date.now() - ref.ts) / 60000));
+  const label = mins >= 60 ? '1h' : mins + 'm';
+  return { diff, pct: ref.total > 0 ? (diff / ref.total) * 100 : 0, label };
+}
+
+/* ── Theme ── */
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light');
+  const btn = document.getElementById('theme-toggle');
+  btn.textContent = isLight ? '🌚 Switch to dark mode' : '🌙 Switch to light mode';
+  document.querySelector('meta[name="theme-color"]').setAttribute('content', isLight ? '#f2f2f7' : '#0f0f0f');
+  store.set('nw-theme', isLight ? 'light' : 'dark');
+}
+
+function loadTheme() {
+  const saved = store.get('nw-theme');
+  const btn = document.getElementById('theme-toggle');
+  if (saved?.value === 'light') {
+    document.body.classList.add('light');
+    if (btn) btn.textContent = '🌚 Switch to dark mode';
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#f2f2f7');
+  } else {
+    if (btn) btn.textContent = '🌙 Switch to light mode';
+  }
+}
+
+/* ── Milestones ── */
+const MILESTONES = [10000,25000,50000,75000,100000,150000,200000,250000,500000,1000000];
+let shownMilestones = JSON.parse(store.get('nw-milestones')?.value || '[]');
+let toastTimer = null;
+
+function checkMilestones(total) {
+  MILESTONES.forEach(m => {
+    if (total >= m && !shownMilestones.includes(m)) {
+      shownMilestones.push(m);
+      store.set('nw-milestones', JSON.stringify(shownMilestones));
+      showToast('🎉 ' + fmt(m) + ' reached!');
+      fireConfetti();
+    }
+  });
+}
+
+function showToast(msg) {
+  const t = document.getElementById('milestone-toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+/* ── Streak ── */
+function calcStreak() {
+  const sorted = [...historyData].sort((a, b) => b.date.localeCompare(a.date));
+  if (sorted.length < 2) return 0;
+  let streak = 0;
+  for (let i = 0; i < sorted.length - 1; i++) {
+    if (sorted[i].total > sorted[i + 1].total) streak++;
+    else break;
+  }
+  return streak;
+}
+
+function renderStreak() {
+  const streak = calcStreak();
+  const el = document.getElementById('streak-badge-wrap');
+  if (streak >= 2) {
+    el.innerHTML = `<div class="streak-badge">🔥 ${streak} day winning streak</div>`;
+  } else {
+    el.innerHTML = '';
+  }
+}
+
+/* ── Goal ── */
+function renderGoal(total) {
+  const amount = parseFloat(store.get('nw-goal-amount')?.value) || 0;
+  const label = store.get('nw-goal-label')?.value || 'Goal';
+  const section = document.getElementById('goal-section');
+  if (!amount || !total) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  const pct = Math.min((total / amount) * 100, 100);
+  document.getElementById('goal-bar').style.width = pct.toFixed(1) + '%';
+  document.getElementById('goal-label').textContent = label;
+  document.getElementById('goal-pct-label').textContent = pct.toFixed(1) + '% of ' + fmt(amount);
+  // Project date using 90-day growth rate
+  const sorted = [...historyData].sort((a, b) => a.date.localeCompare(b.date));
+  const cutoff90 = new Date(Date.now() - 90 * 864e5).toISOString().split('T')[0];
+  const recent = sorted.filter(e => e.date >= cutoff90);
+  const etaEl = document.getElementById('goal-eta');
+  if (total >= amount) {
+    etaEl.textContent = '✓ Goal reached!';
+  } else if (recent.length >= 2) {
+    const oldest = recent[0], newest = recent[recent.length - 1];
+    const daysDiff = (new Date(newest.date) - new Date(oldest.date)) / 864e5;
+    const dailyGrowth = daysDiff > 0 ? (newest.total - oldest.total) / daysDiff : 0;
+    if (dailyGrowth > 0) {
+      const daysLeft = Math.ceil((amount - total) / dailyGrowth);
+      const eta = new Date(Date.now() + daysLeft * 864e5);
+      etaEl.textContent = 'At current rate: ' + eta.toLocaleDateString('en-IE', { day: 'numeric', month: 'short', year: 'numeric' });
+    } else {
+      etaEl.textContent = 'Growth rate too low to project';
+    }
+  } else {
+    etaEl.textContent = 'Add more history for a projection';
+  }
+}
+
+/* ── Donut chart ── */
+let donutChart = null;
+const DONUT_COLORS = ['#5ac8fa','#ff9f0a','#bf5af2','#30d158','#888'];
+const DONUT_LABELS = ['Trading 212','Crypto','Stocks','Revolut','Cash'];
+
+function renderDonut(values) {
+  const total = values.reduce((a, b) => a + b, 0);
+  const canvas = document.getElementById('donut-chart');
+  const legend = document.getElementById('donut-legend');
+  if (!canvas || total === 0) return;
+
+  const ctx = canvas.getContext('2d');
+  const size = 110, cx = size / 2, cy = size / 2, r = 42, inner = 26;
+  ctx.clearRect(0, 0, size, size);
+
+  let startAngle = -Math.PI / 2;
+  values.forEach((v, i) => {
+    if (v <= 0) return;
+    const slice = (v / total) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, startAngle, startAngle + slice);
+    ctx.closePath();
+    ctx.fillStyle = DONUT_COLORS[i];
+    ctx.fill();
+    startAngle += slice;
+  });
+
+  // Inner hole
+  ctx.beginPath();
+  ctx.arc(cx, cy, inner, 0, Math.PI * 2);
+  ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--bg2').trim() || '#1a1a1a';
+  ctx.fill();
+
+  // Legend
+  legend.innerHTML = values.map((v, i) => {
+    if (v <= 0) return '';
+    const pct = ((v / total) * 100).toFixed(1);
+    return `<div class="legend-row">
+      <span class="legend-dot" style="background:${DONUT_COLORS[i]}"></span>
+      <span class="legend-label">${DONUT_LABELS[i]}</span>
+      <span class="legend-val">${fmt(v)}</span>
+      <span class="legend-pct">${pct}%</span>
+    </div>`;
+  }).join('');
+}
+
+/* ── Projection (history tab) ── */
+function renderProjection() {
+  const el = document.getElementById('projection-text');
+  const sorted = [...historyData].sort((a, b) => a.date.localeCompare(b.date));
+  if (sorted.length < 7) { el.textContent = 'Need at least 7 days of history to project.'; return; }
+
+  function project(days) {
+    const cutoff = new Date(Date.now() - days * 864e5).toISOString().split('T')[0];
+    const slice = sorted.filter(e => e.date >= cutoff);
+    if (slice.length < 2) return null;
+    const oldest = slice[0], newest = slice[slice.length - 1];
+    const daysDiff = Math.max(1, (new Date(newest.date) - new Date(oldest.date)) / 864e5);
+    const dailyGrowth = (newest.total - oldest.total) / daysDiff;
+    return { dailyGrowth, base: newest.total };
+  }
+
+  const p30 = project(30), p90 = project(90);
+  const current = sorted[sorted.length - 1].total;
+  let html = '';
+
+  [{ label: '30d rate', p: p30 }, { label: '90d rate', p: p90 }].forEach(({ label, p }) => {
+    if (!p) return;
+    const monthly = p.dailyGrowth * 30;
+    const yearly = p.dailyGrowth * 365;
+    const in1yr = current + yearly;
+    const in3yr = current + yearly * 3;
+    html += `<div style="margin-bottom:10px">
+      <div style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">${label}</div>
+      <div style="font-size:13px">Monthly avg: <strong style="color:${changeColor((monthly/current)*100)}">${monthly >= 0 ? '+' : ''}${fmt(monthly)}</strong></div>
+      <div style="font-size:13px">In 1 year: <strong>${fmt(in1yr)}</strong></div>
+      <div style="font-size:13px">In 3 years: <strong>${fmt(in3yr)}</strong></div>
+    </div>`;
+  });
+
+  el.innerHTML = html || 'Not enough data.';
+}
+
+/* ── Best / worst day ── */
+function renderBestWorst() {
+  const sorted = [...historyData].sort((a, b) => a.date.localeCompare(b.date));
+  if (sorted.length < 2) {
+    ['h-best','h-worst','h-best-date','h-worst-date'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = '—'; });
+    return;
+  }
+  let best = null, worst = null;
+  for (let i = 1; i < sorted.length; i++) {
+    const diff = sorted[i].total - sorted[i-1].total;
+    const pct = sorted[i-1].total > 0 ? (diff / sorted[i-1].total) * 100 : 0;
+    if (!best || diff > best.diff) best = { diff, pct, date: sorted[i].date };
+    if (!worst || diff < worst.diff) worst = { diff, pct, date: sorted[i].date };
+  }
+  const bEl = document.getElementById('h-best'), wEl = document.getElementById('h-worst');
+  if (best && bEl) {
+    bEl.textContent = '+' + fmt(best.diff) + ' (+' + best.pct.toFixed(1) + '%)';
+    bEl.style.color = changeColor(best.pct);
+    document.getElementById('h-best-date').textContent = fmtDateShort(best.date);
+  }
+  if (worst && wEl) {
+    wEl.textContent = (worst.diff >= 0 ? '+' : '') + fmt(worst.diff) + ' (' + worst.pct.toFixed(1) + '%)';
+    wEl.style.color = changeColor(worst.pct);
+    document.getElementById('h-worst-date').textContent = fmtDateShort(worst.date);
+  }
+}
+
+/* ── Backup & Restore ── */
+function exportBackup() {
+  const keys = [
+    'nw-cfg','nw-key','nw-secret',
+    'nw-history','nw-milestones',
+    'nw-goal-amount','nw-goal-label',
+    'nw-cache-t212','nw-cache-crypto','nw-cache-stocks',
+    'nw-intraday','nw-alltime-peak','nw-tab-colors','nw-theme','nw-icon'
+  ];
+  const backup = { version: 1, exportedAt: new Date().toISOString(), data: {} };
+  keys.forEach(k => {
+    const r = store.get(k);
+    if (r) backup.data[k] = r.value;
+  });
+  const json = JSON.stringify(backup, null, 2);
+  const a = document.createElement('a');
+  a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(json);
+  a.download = 'networth-backup-' + new Date().toISOString().split('T')[0] + '.json';
+  a.click();
+}
+
+function importBackup(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const backup = JSON.parse(e.target.result);
+      if (!backup.version || !backup.data) throw new Error('Invalid backup file');
+      const count = Object.keys(backup.data).length;
+      if (!confirm(`Restore ${count} items from backup dated ${backup.exportedAt?.slice(0,10) || 'unknown'}? This will overwrite your current data.`)) return;
+      Object.entries(backup.data).forEach(([k, v]) => store.set(k, v));
+      // Reload everything
+      loadCfg();
+      loadHistory();
+      loadT212Cache();
+      loadCryptoCache();
+      loadStocksCache();
+      shownMilestones = JSON.parse(store.get('nw-milestones')?.value || '[]');
+      populateSettings();
+      showToast('✓ Backup restored');
+      setTimeout(() => showScreen('dash'), 800);
+      startAuto();
+    } catch(err) {
+      alert('Could not restore backup: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+/* ── Export CSV ── */
+function exportCSV() {
+  if (!historyData.length) { alert('No history to export.'); return; }
+  const sorted = [...historyData].sort((a, b) => a.date.localeCompare(b.date));
+  const rows = [['Date', 'Total (' + cfg.currency.toUpperCase() + ')', 'Change', 'Change %']];
+  sorted.forEach((e, i) => {
+    const prev = sorted[i - 1];
+    const diff = prev ? (e.total - prev.total).toFixed(2) : '';
+    const pct = prev && prev.total > 0 ? (((e.total - prev.total) / prev.total) * 100).toFixed(2) + '%' : '';
+    rows.push([e.date, e.total.toFixed(2), diff, pct]);
+  });
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'networth-history-' + new Date().toISOString().split('T')[0] + '.csv';
+  a.click();
+}
+
+/* ── Init ── */
+function init() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('manual-date').value = today;
+  const sixMonthsAgo = new Date(Date.now() - 182 * 864e5).toISOString().split('T')[0];
+  document.getElementById('bf-start').value = sixMonthsAgo;
+  document.getElementById('bf-end').value = today;
+  loadCfg();
+  loadHistory();
+  loadIntradayBuffer();
+  loadTheme();
+  applyTabColors();
+  applyIcon();
+  loadT212Cache();
+  loadCryptoCache();
+  loadStocksCache();
+  // Pre-fill dashboard with cached values so screen isn't blank on load
+  if (t212Cache.val) { document.getElementById('d-t212').textContent = fmt(t212Cache.val); document.getElementById('d-t212-sub').textContent = 'Cached'; }
+  if (cryptoCache.val) { document.getElementById('d-crypto').textContent = fmt(cryptoCache.val); document.getElementById('d-crypto-sub').textContent = 'Cached'; }
+  if (stocksCache.val) { document.getElementById('d-stocks').textContent = fmt(stocksCache.val); document.getElementById('d-stocks-sub').textContent = 'Cached'; }
+  populateSettings();
+  startAuto();
+}
+init();
+</script>
+</body>
+</html>
